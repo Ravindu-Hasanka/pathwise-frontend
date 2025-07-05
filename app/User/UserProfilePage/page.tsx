@@ -1,19 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from "../components/ui/select";
-import { Badge } from "../components/ui/badge";
+} from "../../components/ui/select";
+import { Badge } from "../../components/ui/badge";
 import {  User as UserIcon, Briefcase, Target, Zap, Edit, Save, X } from "lucide-react";
+import { skillOptions, interestOptions }  from "@/app/utils/data";
 
 type FormData = {
   name: string;
@@ -30,18 +31,7 @@ type FormData = {
   salaryExpectation: string;
 };
 
-const skillOptions = [
-  "JavaScript", "Python", "React", "Node.js", "SQL", "AWS", "Docker",
-  "Machine Learning", "Data Analysis", "Project Management", "UX Design",
-  "Marketing", "Sales", "Communication", "Leadership", "Analytics"
-];
-
-const interestOptions = [
-  "Technology", "Healthcare", "Finance", "Education", "E-commerce",
-  "Gaming", "Media", "Startups", "Enterprise", "Non-profit"
-];
-
-const user = () => {
+const userProfilePage = () => {
   const [formData, setFormData] = useState<FormData>({
     name: "Alex Thompson",
     email: "alex.tho@example.com",
@@ -60,12 +50,13 @@ const user = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<FormData>({ ...formData });
 
-  useEffect(() => {
-    // fetchUserData().then(data => {
-    //   setFormData(data);
-    //   setEditData(data);
-    // });
-  }, []);
+  //To do
+  // useEffect(() => {
+  //   fetchUserData().then(data => {
+  //   setFormData(data);
+  //   setEditData(data);
+  //   });
+  // }, []);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -321,4 +312,4 @@ const user = () => {
   );
 };
 
-export default user;
+export default userProfilePage;
