@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar } from "../../components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { Calendar } from "../../../components/ui/calendar";
 import { BarChart3, CalendarCheck, Clock, Star, Users, LibraryBig } from "lucide-react";
-import { Button } from "../../components/ui/button";
+import { Button } from "../../../components/ui/button";
+import {Card, CardContent} from "@/components/ui/card";
 
 export default function CoachDashboardPage() {
     return (
