@@ -5,10 +5,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Progress } from "../../components/ui/progress";
-import { Badge } from "../../components/ui/badge";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Progress } from "../../../components/ui/progress";
+import { Badge } from "../../../components/ui/badge";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -22,7 +22,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
-import Navbar from "../../components/ui/navbar";
+import Navbar from "../../../components/ui/navbar";
 
 export default function CareerPath() {
   // Sample data - in a real app this would come from user profile and backend calculations

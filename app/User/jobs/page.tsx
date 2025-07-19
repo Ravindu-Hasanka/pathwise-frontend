@@ -7,23 +7,23 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Badge } from "../../../components/ui/badge";
+import { Input } from "../../../components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../components/ui/select";
+} from "../../../components/ui/select";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "../../components/ui/tabs";
+} from "../../../components/ui/tabs";
 import {
   Search,
   MapPin,
@@ -38,7 +38,7 @@ import {
   X,
   Building,
 } from "lucide-react";
-import Navbar from "../../components/ui/navbar";
+import Navbar from "../../../components/ui/navbar";
 
 type Job = {
   id: string;
