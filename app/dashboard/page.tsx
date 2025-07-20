@@ -100,7 +100,7 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-blue-500/30">
+          <Card className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-blue-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -112,7 +112,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border-purple-500/30">
+          <Card className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border-purple-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -124,7 +124,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500/30">
+          <Card className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -136,7 +136,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 border-orange-500/30">
+          <Card className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 border-orange-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>

@@ -3,11 +3,11 @@ import Link from "next/link";
 export default function Navbar({ currentPage }: { currentPage?: string }) {
   const links = [
     { href: "/dashboard", label: "Dashboard" },
-    { href: "/User/careerpath", label: "Career Path" },
-    { href: "/skills", label: "Skills" },
-    { href: "/User/jobs", label: "Jobs" },
-    { href: "/User/resumebuilder", label: "CV Builder"},
-    { href: "/community", label: "Community" },
+    { href: "/user/careerpath", label: "Career Path" },
+    { href: "/user/skills", label: "Skills" },
+    { href: "/user/jobs", label: "Jobs" },
+    { href: "/user/resumebuilder", label: "CV Builder" },
+    { href: "/user/community", label: "Community" },
   ];
 
   return (
