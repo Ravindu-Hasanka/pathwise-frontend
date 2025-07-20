@@ -55,6 +55,59 @@ const scheduleData = [
         status: "Confirmed",
         sessionMode: "Remote",
         notes: "Q3 goal setting and review"
+    },
+    // Add more sessions for different dates to show general schedule
+    {
+        id: 5,
+        coacheeId: 5,
+        coacheeName: "Alex Rodriguez",
+        coacheeAvatar: "AR",
+        sessionType: "Career Coaching",
+        date: "2025-07-22",
+        time: "4:00 PM",
+        duration: "1 hour",
+        status: "Confirmed",
+        sessionMode: "Remote",
+        notes: "Career pivot discussion - finance to tech"
+    },
+    {
+        id: 6,
+        coacheeId: 1,
+        coacheeName: "John Smith",
+        coacheeAvatar: "JS",
+        sessionType: "Follow-up Coaching",
+        date: "2025-07-25",
+        time: "10:00 AM",
+        duration: "30 minutes",
+        status: "Confirmed",
+        sessionMode: "Remote",
+        notes: "Check progress on applications"
+    },
+    {
+        id: 7,
+        coacheeId: 6,
+        coacheeName: "Lisa Wang",
+        coacheeAvatar: "LW",
+        sessionType: "LinkedIn Optimization",
+        date: "2025-07-25",
+        time: "2:30 PM",
+        duration: "45 minutes",
+        status: "Pending",
+        sessionMode: "Remote",
+        notes: "Profile optimization for tech roles"
+    },
+    {
+        id: 8,
+        coacheeId: 2,
+        coacheeName: "Sarah Johnson",
+        coacheeAvatar: "SJ",
+        sessionType: "Interview Preparation",
+        date: "2025-07-26",
+        time: "11:00 AM",
+        duration: "1.5 hours",
+        status: "Confirmed",
+        sessionMode: "In-person",
+        notes: "Technical interview prep"
     }
 ];
 
@@ -62,7 +115,9 @@ const coacheesList = [
     { id: 1, name: "John Smith", avatar: "JS" },
     { id: 2, name: "Sarah Johnson", avatar: "SJ" },
     { id: 3, name: "Mike Chen", avatar: "MC" },
-    { id: 4, name: "Emily Davis", avatar: "ED" }
+    { id: 4, name: "Emily Davis", avatar: "ED" },
+    { id: 5, name: "Alex Rodriguez", avatar: "AR" },
+    { id: 6, name: "Lisa Wang", avatar: "LW" }
 ];
 
 const timeSlots = [
@@ -89,19 +144,39 @@ export default function Schedule() {
         notes: ''
     });
 
-    // Filter sessions by date and coachee
-    let filteredSessions = sessions.filter(session =>
-        session.date === selectedDate
-    );
+    // Filter sessions based on whether a specific coachee is selected
+    let filteredSessions;
 
     if (coacheeId) {
-        filteredSessions = filteredSessions.filter(session =>
-            session.coacheeId === parseInt(coacheeId)
+        // Show sessions for specific coachee
+        filteredSessions = sessions.filter(session =>
+            session.date === selectedDate && session.coacheeId === parseInt(coacheeId)
+        );
+    } else {
+        // Show all sessions for the selected date (general view)
+        filteredSessions = sessions.filter(session =>
+            session.date === selectedDate
         );
     }
 
     const selectedCoachee = coacheeId ?
         coacheesList.find(c => c.id === parseInt(coacheeId)) : null;
+
+    // Get summary stats for general view
+    const getTodayStats = () => {
+        const today = new Date().toISOString().split('T')[0];
+        const todaySessions = sessions.filter(session => session.date === today);
+        const confirmedSessions = todaySessions.filter(session => session.status === 'Confirmed');
+        const pendingSessions = todaySessions.filter(session => session.status === 'Pending');
+
+        return {
+            total: todaySessions.length,
+            confirmed: confirmedSessions.length,
+            pending: pendingSessions.length
+        };
+    };
+
+    const todayStats = getTodayStats();
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -113,7 +188,6 @@ export default function Schedule() {
     };
 
     const handleScheduleSession = () => {
-        // Validation
         if (!newSession.coacheeId || !newSession.sessionType || !newSession.date || !newSession.time) {
             alert('Please fill in all required fields');
             return;
@@ -124,7 +198,7 @@ export default function Schedule() {
             return;
         }
         const sessionToAdd = {
-            id: sessions.length + 1, // Simple ID generation
+            id: sessions.length + 1,
             coacheeId: parseInt(newSession.coacheeId),
             coacheeName: coachee?.name || 'Unknown',
             coacheeAvatar: coachee?.avatar || 'UK',
@@ -138,9 +212,7 @@ export default function Schedule() {
         };
 
         setSessions(prevSessions => [...prevSessions, sessionToAdd]);
-
         alert(`Session scheduled successfully for ${coachee?.name} on ${new Date(newSession.date).toLocaleDateString()} at ${newSession.time}`);
-
         setShowNewSession(false);
         setNewSession({
             coacheeId: coacheeId || '',
@@ -181,12 +253,27 @@ export default function Schedule() {
                             <Link href="/coach/incomingRequests/list" className="text-gray-300 hover:text-white transition-colors">
                                 Requests
                             </Link>
+                            <Link href="/coach/earnings" className="text-gray-300 hover:text-white transition-colors">
+                                Earnings
+                            </Link>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <div className="text-right">
+                                <p className="text-white font-medium">Alex Thompson</p>
+                                <p className="text-gray-400 text-sm">Career Coach</p>
+                            </div>
+                            <Link href="/coach/profile">
+                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer">
+                                    <span className="text-white font-bold">AT</span>
+                                </div>
+                            </Link>
                         </div>
                     </div>
                 </div>
             </nav>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-3xl font-bold text-white">
@@ -194,10 +281,10 @@ export default function Schedule() {
                         </h1>
                         {selectedCoachee && (
                             <Link
-                                href="/coach/myCoachees/view"
+                                href="/coach/myCoachees/schedule"
                                 className="text-blue-400 hover:text-blue-300 text-sm"
                             >
-                                ← Back to All Coachees
+                                ← Back to General Schedule
                             </Link>
                         )}
                     </div>
@@ -208,6 +295,36 @@ export default function Schedule() {
                         + Schedule Session
                     </button>
                 </div>
+
+                {/* Stats Overview - Only show in general view */}
+                {!coacheeId && (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                        <div className="bg-black/10 backdrop-blur-lg rounded-lg p-6">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-400">{todayStats.total}</div>
+                                <div className="text-gray-300 text-sm">Total Sessions Today</div>
+                            </div>
+                        </div>
+                        <div className="bg-black/10 backdrop-blur-lg rounded-lg p-6">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-green-400">{todayStats.confirmed}</div>
+                                <div className="text-gray-300 text-sm">Confirmed</div>
+                            </div>
+                        </div>
+                        <div className="bg-black/10 backdrop-blur-lg rounded-lg p-6">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-yellow-400">{todayStats.pending}</div>
+                                <div className="text-gray-300 text-sm">Pending</div>
+                            </div>
+                        </div>
+                        <div className="bg-black/10 backdrop-blur-lg rounded-lg p-6">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-purple-400">{coacheesList.length}</div>
+                                <div className="text-gray-300 text-sm">Active Coachees</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Date Filter */}
                 <div className="bg-black/10 backdrop-blur-lg rounded-lg p-6 mb-6">
@@ -223,6 +340,16 @@ export default function Schedule() {
                             {filteredSessions.length} session(s) scheduled
                             {selectedCoachee && ` for ${selectedCoachee.name}`}
                         </div>
+                        {!coacheeId && (
+                            <div className="ml-auto">
+                                <Link
+                                    href="/coach/myCoachees/view"
+                                    className="text-blue-400 hover:text-blue-300 text-sm"
+                                >
+                                    View by Coachee →
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -311,6 +438,7 @@ export default function Schedule() {
                             </h3>
 
                             <div className="space-y-4">
+                                {/* Always show coachee selector in general view, hide if specific coachee is selected */}
                                 {!coacheeId && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -343,6 +471,8 @@ export default function Schedule() {
                                         <option value="Resume Review">Resume Review</option>
                                         <option value="Interview Preparation">Interview Preparation</option>
                                         <option value="Goal Setting">Goal Setting</option>
+                                        <option value="Follow-up Coaching">Follow-up Coaching</option>
+                                        <option value="LinkedIn Optimization">LinkedIn Optimization</option>
                                     </select>
                                 </div>
 

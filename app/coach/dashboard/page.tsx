@@ -41,11 +41,8 @@ export default function CoachDashboardPage() {
                             >
                                 Requests
                             </Link>
-                            <Link
-                                href="/coach/profile"
-                                className="text-gray-300 hover:text-white transition-colors"
-                            >
-                                Profile
+                            <Link href="/coach/earnings" className="text-gray-300 hover:text-white transition-colors">
+                                Earnings
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">

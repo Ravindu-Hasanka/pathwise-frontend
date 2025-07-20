@@ -90,21 +90,20 @@ export default function MyCoachees() {
                             >
                                 Requests
                             </Link>
-                            <Link
-                                href="/coach/profile"
-                                className="text-white font-medium"
-                            >
-                                Profile
+                            <Link href="/coach/earnings" className="text-gray-300 hover:text-white transition-colors">
+                                Earnings
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">
                             <div className="text-right">
                                 <p className="text-white font-medium">Alex Thompson</p>
-                                <p className="text-gray-400 text-sm">Software Developer</p>
+                                <p className="text-gray-400 text-sm">Career Coach</p>
                             </div>
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                <span className="text-white font-bold">AT</span>
-                            </div>
+                            <Link href="/coach/profile">
+                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer">
+                                    <span className="text-white font-bold">AT</span>
+                                </div>
+                            </Link>
                         </div>
                     </div>
                 </div>

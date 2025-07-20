@@ -191,11 +191,8 @@ export default function CoachSettingsPage() {
                             >
                                 Requests
                             </Link>
-                            <Link
-                                href="/coach/profile"
-                                className="text-white font-medium"
-                            >
-                                Profile
+                            <Link href="/coach/earnings" className="text-gray-300 hover:text-white transition-colors">
+                                Earnings
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">
