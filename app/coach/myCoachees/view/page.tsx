@@ -69,32 +69,32 @@ export default function MyCoachees() {
                             <span className="text-white font-bold text-xl">Pathwise</span>
                         </div>
                         <div className="hidden md:flex items-center space-x-8">
-                            <Link href="/dashboard" className="text-white font-medium">
+                            <Link href="/coach/dashboard" className="text-gray-300 hover:text-white transition-colors">
                                 Dashboard
                             </Link>
                             <Link
-                                href="/career-path"
+                                href="/coach/myCoachees/view"
                                 className="text-gray-300 hover:text-white transition-colors"
                             >
-                                Career Path
+                                My Coachees
                             </Link>
                             <Link
-                                href="/skills"
+                                href="/coach/myCoachees/schedule"
                                 className="text-gray-300 hover:text-white transition-colors"
                             >
-                                Skills
+                                Schedule
                             </Link>
                             <Link
-                                href="/jobs"
+                                href="/coach/incomingRequests/list"
                                 className="text-gray-300 hover:text-white transition-colors"
                             >
-                                Jobs
+                                Requests
                             </Link>
                             <Link
-                                href="/community"
-                                className="text-gray-300 hover:text-white transition-colors"
+                                href="/coach/profile"
+                                className="text-white font-medium"
                             >
-                                Community
+                                Profile
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">
