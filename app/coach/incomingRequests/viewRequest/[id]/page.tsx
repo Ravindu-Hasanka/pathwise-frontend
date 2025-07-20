@@ -50,14 +50,10 @@ export default function ViewRequest() {
     }
 
     const handleAccept = () => {
-        // Handle accept logic here
-        console.log('Accepting request:', id);
         router.push('/coach/incomingRequests/list');
     };
 
     const handleDecline = () => {
-        // Handle decline logic here
-        console.log('Declining request:', id);
         router.push('/coach/incomingRequests/list');
     };
 

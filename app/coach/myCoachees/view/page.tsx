@@ -215,9 +215,9 @@ export default function MyCoachees() {
                                                 >
                                                     View Profile
                                                 </button>
-                                                <button className="text-green-400 hover:text-green-300">
+                                                <Link className="text-green-400 hover:text-green-300" href={`/coach/myCoachees/schedule?coacheeId=${coachee.id}`} >
                                                     Schedule
-                                                </button>
+                                                </Link>
                                             </div>
                                         </td>
                                     </tr>
