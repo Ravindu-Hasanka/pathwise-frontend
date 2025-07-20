@@ -6,6 +6,7 @@ export default function Navbar({ currentPage }: { currentPage?: string }) {
     { href: "/user/careerpath", label: "Career Path" },
     { href: "/user/skills", label: "Skills" },
     { href: "/user/jobs", label: "Jobs" },
+    { href: "/user/resumebuilder", label: "CV Builder" },
     { href: "/user/community", label: "Community" },
   ];
 
