@@ -8,13 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Plus, Upload, Wand2, FileText, Edit, Trash2, GraduationCap } from "lucide-react";
+import { Plus, Upload, Wand2, FileText, Trash2, X } from "lucide-react";
 import Navbar from "../../../components/ui/navbar";
 
 export default function ResumeBuilder() {
   const [activeTab, setActiveTab] = useState("builder");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [customSkill, setCustomSkill] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Resume form state
@@ -56,6 +57,23 @@ export default function ResumeBuilder() {
     "HTML/CSS", "Git", "AWS", "Docker", "UI/UX Design"
   ];
 
+  const addCustomSkill = () => {
+    if (customSkill.trim() && !resumeData.skills.includes(customSkill.trim())) {
+      setResumeData(prev => ({
+        ...prev,
+        skills: [...prev.skills, customSkill.trim()]
+      }));
+      setCustomSkill("");
+    }
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setResumeData(prev => ({ ...prev, [name]: value }));
@@ -85,7 +103,7 @@ export default function ResumeBuilder() {
       experiences: [
         ...prev.experiences,
         {
-          id: Date.now(), // Using timestamp for unique ID
+          id: Date.now(),
           jobTitle: "",
           company: "",
           duration: "",
@@ -101,7 +119,7 @@ export default function ResumeBuilder() {
       education: [
         ...prev.education,
         {
-          id: Date.now(), // Using timestamp for unique ID
+          id: Date.now(),
           degree: "",
           institution: "",
           year: "",
@@ -142,7 +160,6 @@ export default function ResumeBuilder() {
    
     setTimeout(() => {
       setIsOptimizing(false);
-       
       alert("Resume optimization complete! Check the suggestions below.");
     }, 3000);
   };
@@ -365,39 +382,74 @@ export default function ResumeBuilder() {
                     </div>
                   </div>
 
-                  {/* Skills */}
+                  {/* Skills Section */}
                   <div>
                     <h3 className="text-xl font-semibold text-white mb-4">Skills</h3>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {resumeData.skills.map((skill) => (
-                        <Badge key={skill} className="bg-blue-500/20 text-blue-300 border-blue-500/30">
-                          {skill}
-                        </Badge>
-                      ))}
+                      {resumeData.skills.length > 0 ? (
+                        resumeData.skills.map((skill) => (
+                          <Badge 
+                            key={skill} 
+                            className="bg-blue-500/20 text-blue-300 border-blue-500/30 flex items-center group cursor-pointer"
+                            onClick={() => removeSkill(skill)}
+                          >
+                            {skill}
+                            <X className="h-3 w-3 ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 text-sm">No skills added yet</p>
+                      )}
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                      {skillOptions.map((skill) => (
-                        <Button
-                          key={skill}
-                          variant={resumeData.skills.includes(skill) ? "default" : "outline"}
-                          className={`${
-                            resumeData.skills.includes(skill)
-                              ? "bg-blue-500 hover:bg-blue-600"
-                              : "border-white/20 text-gray-300 hover:bg-white/10"
-                          }`}
-                          size="sm"
-                          onClick={() => {
-                            setResumeData(prev => ({
-                              ...prev,
-                              skills: prev.skills.includes(skill)
-                                ? prev.skills.filter(s => s !== skill)
-                                : [...prev.skills, skill]
-                            }));
+                    
+                    <div className="mb-4">
+                      <Label className="text-white">Add Custom Skill</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          value={customSkill}
+                          onChange={(e) => setCustomSkill(e.target.value)}
+                          placeholder="Type a skill not listed below"
+                          className="bg-slate-700 border-slate-600"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') addCustomSkill()
                           }}
+                        />
+                        <Button
+                          variant="outline"
+                          className="border-white/20 text-gray-300 hover:bg-white/10"
+                          onClick={addCustomSkill}
                         >
-                          {skill}
+                          Add
                         </Button>
-                      ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-white mb-2 block">Common Skills</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                        {skillOptions.map((skill) => (
+                          <Button
+                            key={skill}
+                            variant={resumeData.skills.includes(skill) ? "default" : "outline"}
+                            className={`${
+                              resumeData.skills.includes(skill)
+                                ? "bg-blue-500 hover:bg-blue-600"
+                                : "border-white/20 text-gray-300 hover:bg-white/10"
+                            }`}
+                            size="sm"
+                            onClick={() => {
+                              setResumeData(prev => ({
+                                ...prev,
+                                skills: prev.skills.includes(skill)
+                                  ? prev.skills.filter(s => s !== skill)
+                                  : [...prev.skills, skill]
+                              }));
+                            }}
+                          >
+                            {skill}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
