@@ -24,6 +24,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
+import Navbar from "../../components/ui/navbar";
 
 export default function Dashboard() {
   const careerMatches = [
@@ -89,57 +90,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Navigation */}
-      <nav className="border-b border-white/10 bg-black/20 backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
-              </div>
-              <span className="text-white font-bold text-xl">Pathwise</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/dashboard" className="text-white font-medium">
-                Dashboard
-              </Link>
-              <Link
-                href="/career-path"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Career Path
-              </Link>
-              <Link
-                href="/skills"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Skills
-              </Link>
-              <Link
-                href="/jobs"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Jobs
-              </Link>
-              <Link
-                href="/community"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Community
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-white font-medium">Alex Thompson</p>
-                <p className="text-gray-400 text-sm">Software Developer</p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold">AT</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+      <Navbar currentPage="dashboard" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -149,7 +100,7 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-blue-500/30">
+          <Card className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-blue-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -161,7 +112,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border-purple-500/30">
+          <Card className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border-purple-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -173,7 +124,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500/30">
+          <Card className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -185,7 +136,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 border-orange-500/30">
+          <Card className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 border-orange-500/30 pt-6">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
