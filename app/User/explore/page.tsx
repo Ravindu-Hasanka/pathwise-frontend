@@ -27,6 +27,7 @@ import coach3 from "../../utils/images/coach3.jpg";
 import coach4 from "../../utils/images/coach4.jpeg";
 import coach5 from "../../utils/images/coach5.jpg";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/ui/navbar";
 
 export const coachDetails = [
   {
@@ -136,62 +137,7 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Navigation Bar */}
-      <nav className="border-b border-white/10 bg-black/20 backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
-              </div>
-              <span className="text-white font-bold text-xl">Pathwise</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/dashboard" className="text-white font-medium">
-                Dashboard
-              </Link>
-              <Link
-                href="/career-path"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Career Path
-              </Link>
-              <Link
-                href="/skills"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Skills
-              </Link>
-              <Link
-                href="/user/explore"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Coaches
-              </Link>
-              <Link
-                href="/jobs"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Jobs
-              </Link>
-              <Link
-                href="/community"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Community
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-white font-medium">Alex Thompson</p>
-                <p className="text-gray-400 text-sm">Software Developer</p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold">AT</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar currentPage="coaches" />
 
       <div className="flex justify-center items-start px-4 py-8">
         <div className="flex gap-4">
