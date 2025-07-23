@@ -23,12 +23,12 @@ interface InterviewReport {
 }
 
 const VapiWidget: React.FC<VapiWidgetProps> = ({
-    apiKey,
-    assistantId,
-    interviewPosition,
-    userName,
-    config = {},
-}) => {
+                                                   apiKey,
+                                                   assistantId,
+                                                   interviewPosition,
+                                                   userName,
+                                                   config = {},
+                                               }) => {
     const [vapi, setVapi] = useState<Vapi | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -113,7 +113,7 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
 
     const getRoleSpecificRequirements = (position: string) => {
         position = position.toLowerCase();
-        
+
         if (position.includes('frontend') || position.includes('react')) {
             return "Focus on JavaScript/TypeScript, React, CSS, and responsive design principles.";
         }
@@ -149,12 +149,12 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
         const generateInterviewReport = async () => {
             const geminiApiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
             if (!geminiApiKey || transcript.length <= 1) return;
-            
+
             setIsGeneratingReport(true);
-            
+
             try {
                 const genAI = new GoogleGenerativeAI(geminiApiKey);
-                const model = genAI.getGenerativeModel({ 
+                const model = genAI.getGenerativeModel({
                     model: "gemini-1.5-flash",
                     generationConfig: { responseMimeType: "application/json" }
                 });
@@ -192,15 +192,15 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
                 setReport(geminiReport);
                 const response = result.response;
                 const text = response.text();
-                
+
                 // Parse JSON response
                 const reportData = JSON.parse(text) as InterviewReport;
-                
+
                 // Validate score range
                 if (reportData.score < 0 || reportData.score > 100) {
                     reportData.score = Math.min(100, Math.max(0, reportData.score));
                 }
-                
+
                 setReport(reportData);
             } catch (error) {
                 console.error("Gemini report error:", error);
@@ -244,7 +244,7 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
                 {/* AI Interviewer */}
                 <div
                     className=
-                    "flex flex-col items-center justify-center gap-2 p-7 h-[400px] w-full sm:basis-1/2 rounded-lg border-2 bg-gradient-to-br from-[#0f172a] to-[#1e3a8a]"
+                        "flex flex-col items-center justify-center gap-2 p-7 h-[400px] w-full sm:basis-1/2 rounded-lg border-2 bg-gradient-to-br from-[#0f172a] to-[#1e3a8a]"
                 >
                     {isSpeaking ? (
                         <div className={cn("relative z-10 flex items-center justify-center rounded-full size-[120px] bg-gradient-to-br from-[#0f172a] to-[#1e3a8a]",
@@ -303,7 +303,7 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
             {interviewStatus === 'ended' && (
                 <div className="w-full blue-gradient-dark rounded-2xl p-6">
                     <h3 className="text-xl font-semibold text-primary-100 mb-4">Interview Analysis</h3>
-                    
+
                     {isGeneratingReport ? (
                         <div className="text-center py-8">
                             <FiRefreshCw className="animate-spin mx-auto text-3xl text-primary-100 mb-3" />
@@ -316,7 +316,7 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
                                 <h4 className="font-medium text-primary-100 mb-2">Summary</h4>
                                 <p className="text-light-100">{interviewReport.summary}</p>
                             </div>
-                            
+
                             {/* Score */}
                             <div className="bg-gradient-to-br from-[#0f172a] to-[#1e293b] rounded-xl p-5 flex flex-col items-center justify-center">
                                 <div className={`text-5xl font-bold ${getScoreColor(interviewReport.score)}`}>
@@ -325,13 +325,13 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
                                 </div>
                                 <div className="mt-2 text-sm text-gray-300">Overall Score</div>
                             </div>
-                            
+
                             {/* Detailed Review */}
                             <div className="md:col-span-3 bg-dark-200 rounded-xl p-5">
                                 <h4 className="font-medium text-primary-100 mb-2">Detailed Review</h4>
                                 <p className="text-light-100">{interviewReport.review}</p>
                             </div>
-                            
+
                             {/* Strengths */}
                             <div className="md:col-span-3 bg-gradient-to-br from-green-900/20 to-green-800/10 rounded-xl p-5">
                                 <h4 className="font-medium text-green-300 mb-2">Key Strengths</h4>
@@ -344,7 +344,7 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
                                     ))}
                                 </ul>
                             </div>
-                            
+
                             {/* Areas for Improvement */}
                             <div className="md:col-span-3 bg-gradient-to-br from-amber-900/20 to-amber-800/10 rounded-xl p-5">
                                 <h4 className="font-medium text-amber-300 mb-2">Areas for Improvement</h4>
