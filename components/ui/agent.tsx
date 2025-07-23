@@ -397,36 +397,6 @@ const VapiWidget: React.FC<VapiWidgetProps> = ({
                         )}
                     </Disclosure>
                 </div>
-                {/* Summary (bottom) */}
-                <div className="w-full mt">
-                    <Disclosure defaultOpen={false}>
-                        {({ open }) => (
-                            <>
-                                <Disclosure.Button className="flex items-center justify-between w-full bg-[#1e3a8a] text-white px-4 py-3 rounded-lg">
-                                    <span>Summary</span>
-                                    {open ? <FiChevronDown /> : <FiChevronRight />}
-                                </Disclosure.Button>
-                                <Disclosure.Panel className="mt-2 max-h-[500px] overflow-y-auto space-y-3 bg-[#0f172a] p-4 rounded-lg text-white text-sm">
-                                    {transcript.length > 0 ? (
-                                        transcript.map((msg, index) => (
-                                            <div
-                                                key={index}
-                                                className={cn(
-                                                    'p-2 rounded-md',
-                                                    msg.role === 'user' ? 'bg-primary-100/20 text-right' : 'bg-dark-200'
-                                                )}
-                                            >
-                                                <strong>{msg.role === 'user' ? 'You: ' : 'Interviewer: '}</strong> {msg.text}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-center text-gray-300">Transcript will appear here during the call.</p>
-                                    )}
-                                </Disclosure.Panel>
-                            </>
-                        )}
-                    </Disclosure>
-                </div>
             </div>
 
         </div>
