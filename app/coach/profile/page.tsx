@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import Link from "next/link"
-import { cn } from "@/app/lib/utils";
+import {cn} from "@/app/lib/utils";
 
 type FormData = {
     firstName: string
@@ -170,29 +170,32 @@ export default function CoachSettingsPage() {
                             <span className="text-white font-bold text-xl">Pathwise</span>
                         </div>
                         <div className="hidden md:flex items-center space-x-8">
-                            <Link href="/coach/dashboard" className="text-gray-300 hover:text-white transition-colors">
+                            <Link href="/dashboard" className="text-white font-medium">
                                 Dashboard
                             </Link>
                             <Link
-                                href="/coach/myCoachees/view"
+                                href="/career-path"
                                 className="text-gray-300 hover:text-white transition-colors"
                             >
-                                My Coachees
+                                Career Path
                             </Link>
                             <Link
-                                href="/coach/myCoachees/schedule"
+                                href="/skills"
                                 className="text-gray-300 hover:text-white transition-colors"
                             >
-                                Schedule
+                                Skills
                             </Link>
                             <Link
-                                href="/coach/incomingRequests/list"
+                                href="/jobs"
                                 className="text-gray-300 hover:text-white transition-colors"
                             >
-                                Requests
+                                Jobs
                             </Link>
-                            <Link href="/coach/earnings" className="text-gray-300 hover:text-white transition-colors">
-                                Earnings
+                            <Link
+                                href="/community"
+                                className="text-gray-300 hover:text-white transition-colors"
+                            >
+                                Community
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">
