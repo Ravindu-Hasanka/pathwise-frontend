@@ -15,6 +15,7 @@ export default function Navbar({ currentPage }: { currentPage?: string }) {
     { href: "/user/resumebuilder", label: "CV Builder" },
     { href: "/user/explore", label: "Coaches" },
     { href: "/user/community", label: "Community" },
+    { href: "/user/interview", label: "AI Interviewer" },
   ];
 
   // Close dropdown when clicking outside

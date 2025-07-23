@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import post1 from "../../utils/images/post1.avif"
+import post2 from "../../utils/images/post2.webp";
 import {
   Users,
   Bell,
@@ -124,7 +126,7 @@ export default function CommunityPage() {
       likes: 12,
       comments: 4,
       time: "2 hours ago",
-      images: ["https://source.unsplash.com/random/600x600/?uidesign,interface"], // No images for this post
+      images: [post1.src],
     },
     {
       id: 2,
@@ -134,19 +136,17 @@ export default function CommunityPage() {
       likes: 8,
       comments: 3,
       time: "5 hours ago",
-      images: [], // No images for this post
+      images: [],
     },
     {
       id: 3,
       user: { name: "David Kim", role: "Data Scientist", avatar: "DK" },
       content:
-        "Check out these visualizations from our latest project! #datascience #machinelearning",
+      "Proud to share that I’ve earned a new certificate in Udemy! Grateful for the opportunity to expand my knowledge and skills. #achievement #lifelonglearning #certificate",
       likes: 15,
       comments: 7,
       time: "1 day ago",
-      images: [
-        ,
-      ],
+      images: [post2.src],
     },
   ]);
 
