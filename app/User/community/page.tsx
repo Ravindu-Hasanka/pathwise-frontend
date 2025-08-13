@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -35,60 +35,25 @@ export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState("network");
   const [message, setMessage] = useState("");
   const [activeChat, setActiveChat] = useState<string | null>(null);
-  const [connectionRequests, setConnectionRequests] = useState([
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      role: "Senior UX Designer",
-      avatar: "SJ",
-      mutual: 5,
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      role: "Tech Lead at Google",
-      avatar: "MC",
-      mutual: 12,
-    },
-    {
-      id: 3,
-      name: "Emma Rodriguez",
-      role: "Recruiter at Microsoft",
-      avatar: "ER",
-      mutual: 3,
-    },
-  ]);
+  type ConnectionRequest = {
+    id: number;
+    name: string;
+    role: string;
+    avatar: string;
+    mutual: number;
+  };
 
-  const [connections, setConnections] = useState([
-    {
-      id: 1,
-      name: "Alex Thompson",
-      role: "Software Engineer",
-      avatar: "AT",
-      online: true,
-    },
-    {
-      id: 2,
-      name: "Priya Patel",
-      role: "Product Manager",
-      avatar: "PP",
-      online: false,
-    },
-    {
-      id: 3,
-      name: "David Kim",
-      role: "Data Scientist",
-      avatar: "DK",
-      online: true,
-    },
-    {
-      id: 4,
-      name: "Lisa Wong",
-      role: "Frontend Developer",
-      avatar: "LW",
-      online: false,
-    },
-  ]);
+  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+
+  type Connection = {
+    id: number;
+    name: string;
+    role: string;
+    avatar: string;
+    online: boolean;
+  };
+
+  const [connections, setConnections] = useState<Connection[]>([]);
 
   const [announcements, setAnnouncements] = useState([
     {
@@ -142,7 +107,7 @@ export default function CommunityPage() {
       id: 3,
       user: { name: "David Kim", role: "Data Scientist", avatar: "DK" },
       content:
-      "Proud to share that I’ve earned a new certificate in Udemy! Grateful for the opportunity to expand my knowledge and skills. #achievement #lifelonglearning #certificate",
+        "Proud to share that I’ve earned a new certificate in Udemy! Grateful for the opportunity to expand my knowledge and skills. #achievement #lifelonglearning #certificate",
       likes: 15,
       comments: 7,
       time: "1 day ago",
@@ -184,25 +149,33 @@ export default function CommunityPage() {
     ],
   });
 
-  const handleConnect = (id: number) => {
-    const request = connectionRequests.find((req) => req.id === id);
-    if (request) {
-      setConnections([
-        ...connections,
-        {
-          id: request.id,
-          name: request.name,
-          role: request.role,
-          avatar: request.avatar,
-          online: false,
-        },
-      ]);
-      setConnectionRequests(connectionRequests.filter((req) => req.id !== id));
+  const handleConnect = async (connectionId: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/network/accept/${connectionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setConnectionRequests(connectionRequests.filter((req) => req.id !== connectionId));
+      }
+    } catch (error) {
+      console.error("Error accepting connection:", error);
     }
+    fetchConnections();
   };
 
-  const handleIgnore = (id: number) => {
-    setConnectionRequests(connectionRequests.filter((req) => req.id !== id));
+  const handleIgnore = async (connectionId: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/network/accept/${connectionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setConnectionRequests(connectionRequests.filter((req) => req.id !== connectionId));
+      }
+    } catch (error) {
+      console.error("Error ignoring connection:", error);
+    }
   };
 
   const handleSendMessage = () => {
@@ -222,6 +195,58 @@ export default function CommunityPage() {
       setMessage("");
     }
   };
+
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  const fetchConnections = () => {
+    const userId = 1;
+
+    // Fetch connections
+    fetch(`http://localhost:8080/api/network/${userId}/connections`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setConnections(
+          data.map((user: any) => ({
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            avatar: user.avatar || user.name.split(" ").map((n: string) => n[0]).join(""),
+            online: false,
+          }))
+        );
+      })
+      .catch((err) => console.error("Failed to fetch connections", err));
+
+    // Fetch connection requests
+    fetch(`http://localhost:8080/api/network/${userId}/requests`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Connection requests response:", data); // Log the response
+        setConnectionRequests(
+          data.map((user: any) => ({
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            avatar: user.avatar || user.name.split(" ").map((n: string) => n[0]).join(""),
+            mutual: user.mutual || 0,
+          }))
+        );
+      })
+      .catch((err) => console.error("Failed to fetch connection requests", err));
+  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -431,19 +456,18 @@ export default function CommunityPage() {
                             <div className="flex items-center mb-1">
                               <Badge
                                 variant="outline"
-                                className={`mr-2 ${
-                                  announcement.type === "webinar"
-                                    ? "border-blue-500/30 text-blue-400"
-                                    : announcement.type === "event"
+                                className={`mr-2 ${announcement.type === "webinar"
+                                  ? "border-blue-500/30 text-blue-400"
+                                  : announcement.type === "event"
                                     ? "border-purple-500/30 text-purple-400"
                                     : "border-green-500/30 text-green-400"
-                                }`}
+                                  }`}
                               >
                                 {announcement.type === "webinar"
                                   ? "Webinar"
                                   : announcement.type === "event"
-                                  ? "Event"
-                                  : "Update"}
+                                    ? "Event"
+                                    : "Update"}
                               </Badge>
                               <span className="text-gray-400 text-sm">
                                 {announcement.date}
@@ -638,29 +662,26 @@ export default function CommunityPage() {
                             {/* Image Grid - supports 1-4 images with different layouts */}
                             {post.images && post.images.length > 0 && (
                               <div
-                                className={`mb-4 rounded-lg overflow-hidden ${
-                                  post.images.length === 1 ? "max-w-2xl" : ""
-                                }`}
+                                className={`mb-4 rounded-lg overflow-hidden ${post.images.length === 1 ? "max-w-2xl" : ""
+                                  }`}
                               >
                                 <div
-                                  className={`grid gap-2 ${
-                                    post.images.length === 1
-                                      ? "grid-cols-1"
-                                      : post.images.length === 2
+                                  className={`grid gap-2 ${post.images.length === 1
+                                    ? "grid-cols-1"
+                                    : post.images.length === 2
                                       ? "grid-cols-2"
                                       : post.images.length === 3
-                                      ? "grid-cols-2"
-                                      : "grid-cols-2"
-                                  }`}
+                                        ? "grid-cols-2"
+                                        : "grid-cols-2"
+                                    }`}
                                 >
                                   {post.images.map((image, idx) => (
                                     <div
                                       key={idx}
-                                      className={`relative aspect-square ${
-                                        post.images.length === 3 && idx === 0
-                                          ? "row-span-2"
-                                          : ""
-                                      }`}
+                                      className={`relative aspect-square ${post.images.length === 3 && idx === 0
+                                        ? "row-span-2"
+                                        : ""
+                                        }`}
                                     >
                                       <img
                                         src={image}
@@ -782,11 +803,10 @@ export default function CommunityPage() {
                       {Object.keys(messages).map((name) => (
                         <div
                           key={name}
-                          className={`p-3 rounded-lg cursor-pointer ${
-                            activeChat === name
-                              ? "bg-slate-700/50 border border-white/10"
-                              : "hover:bg-slate-700/30"
-                          }`}
+                          className={`p-3 rounded-lg cursor-pointer ${activeChat === name
+                            ? "bg-slate-700/50 border border-white/10"
+                            : "hover:bg-slate-700/30"
+                            }`}
                           onClick={() => setActiveChat(name)}
                         >
                           <div className="flex items-center space-x-3">
@@ -839,26 +859,23 @@ export default function CommunityPage() {
                           {messages[activeChat]?.map((msg, index) => (
                             <div
                               key={index}
-                              className={`flex ${
-                                msg.sender === "You"
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
+                              className={`flex ${msg.sender === "You"
+                                ? "justify-end"
+                                : "justify-start"
+                                }`}
                             >
                               <div
-                                className={`max-w-[80%] p-3 rounded-lg ${
-                                  msg.sender === "You"
-                                    ? "bg-gradient-to-r from-blue-500 to-purple-600"
-                                    : "bg-slate-700/50"
-                                }`}
+                                className={`max-w-[80%] p-3 rounded-lg ${msg.sender === "You"
+                                  ? "bg-gradient-to-r from-blue-500 to-purple-600"
+                                  : "bg-slate-700/50"
+                                  }`}
                               >
                                 <p className="text-white">{msg.text}</p>
                                 <p
-                                  className={`text-xs mt-1 ${
-                                    msg.sender === "You"
-                                      ? "text-blue-200"
-                                      : "text-gray-400"
-                                  }`}
+                                  className={`text-xs mt-1 ${msg.sender === "You"
+                                    ? "text-blue-200"
+                                    : "text-gray-400"
+                                    }`}
                                 >
                                   {msg.time}
                                 </p>
