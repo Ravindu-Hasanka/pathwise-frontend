@@ -23,6 +23,8 @@ import {
   X,
 } from "lucide-react";
 import { skillOptions, interestOptions } from "@/app/utils/data";
+import { retrieveUser } from "../../../../api/api";
+import { updateJobSeeker } from "../../../../api/api";
 
 type FormData = {
   name: string;
@@ -33,6 +35,7 @@ type FormData = {
   education: string;
   skills: string[];
   interests: string[];
+  expertiseArea: string[];
   careerGoals: string;
   targetRole: string;
   targetIndustry: string;
@@ -41,30 +44,64 @@ type FormData = {
 
 const userProfilePage = () => {
   const [formData, setFormData] = useState<FormData>({
-    name: "Alex Thompson",
-    email: "alex.tho@example.com",
-    location: "San Francisco, CA",
-    currentRole: "Frontend Developer",
-    experience: "4-6",
-    education: "bachelors",
-    skills: ["JavaScript", "React", "Node.js"],
-    interests: ["Technology", "Startups"],
-    careerGoals: "Become a senior developer and eventually a tech lead",
-    targetRole: "Senior Frontend Developer",
-    targetIndustry: "technology",
-    salaryExpectation: "100-150k",
+    name: "",
+    email: "",
+    location: "",
+    currentRole: "",
+    experience: "",
+    education: "",
+    skills: [],
+    interests: [],
+    expertiseArea: [],
+    careerGoals: "",
+    targetRole: "",
+    targetIndustry: "",
+    salaryExpectation: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<FormData>({ ...formData });
 
-  //To do
-  // useEffect(() => {
-  //   fetchUserData().then(data => {
-  //   setFormData(data);
-  //   setEditData(data);
-  //   });
-  // }, []);
+  useEffect(() => {
+    retrieveUser(7)
+      .then((res) => {
+        const user = res.data;
+        const profile = user.jobSeekerProfile || user.coachProfile || {};
+
+        setFormData({
+          name: user.name || "",
+          email: user.email || "",
+          location: profile.location || "",
+          currentRole: profile.currentRole || "",
+          experience: profile.experience || "",
+          education: profile.education || "",
+          skills: profile.skills || [],
+          interests: profile.interests || [],
+          expertiseArea: profile.expertiseArea || [],
+          careerGoals: profile.careerGoals || "",
+          targetRole: profile.targetRole || "",
+          targetIndustry: profile.targetIndustry || "",
+          salaryExpectation: profile.salaryExpectation || "",
+        });
+
+        setEditData({
+          name: user.name || "",
+          email: user.email || "",
+          location: profile.location || "",
+          currentRole: profile.currentRole || "",
+          experience: profile.experience || "",
+          education: profile.education || "",
+          skills: profile.skills || [],
+          interests: profile.interests || [],
+          expertiseArea: profile.expertiseArea || [],
+          careerGoals: profile.careerGoals || "",
+          targetRole: profile.targetRole || "",
+          targetIndustry: profile.targetIndustry || "",
+          salaryExpectation: profile.salaryExpectation || "",
+        });
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -75,18 +112,54 @@ const userProfilePage = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleSave = () => {
-    setFormData({ ...editData });
-    setIsEditing(false);
-    // saveUserData(editData).then(() => {
-    //   setFormData(editData);
-    //   setIsEditing(false);
-    // });
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setEditData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const userId = 7; // Replace with actual user ID
+
+      const expertiseArray =
+      typeof editData.expertiseArea === "string"
+        ? (editData.expertiseArea as string)
+            .split(",")           
+            .map((s) => s.trim())  
+            .filter((s) => s)     
+        : editData.expertiseArea;  
+
+     
+      const updateData = {
+        name: editData.name,
+        email: editData.email,
+        location: editData.location,
+        currentRole: editData.currentRole,
+        experience: editData.experience,
+        education: editData.education,
+        skills: editData.skills,
+        interests: editData.interests,
+        expertiseArea: expertiseArray,
+        careerGoals: editData.careerGoals,
+        targetRole: editData.targetRole,
+        targetIndustry: editData.targetIndustry,
+        salaryExpectation: editData.salaryExpectation,
+      };
+
+      const res = await updateJobSeeker(userId, updateData);
+
+      
+      const updatedProfile = res.data.jobSeekerProfile || {};
+      setFormData({
+        ...editData,
+        ...updatedProfile,
+      });
+
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Update failed:", err);
+    } finally {
+    }
   };
 
   const handleSelectChange = (field: keyof FormData, value: string) => {
@@ -166,26 +239,29 @@ const userProfilePage = () => {
     </div>
   );
 
-  const renderBadges = (items: string[]) => (
-    <div className="flex flex-wrap gap-2 mt-1">
-      {items.length > 0 ? (
-        items.map((item) => (
-          <Badge
-            key={item}
-            variant="default"
-            className="bg-blue-500/20 text-blue-300"
-          >
-            {item}
-          </Badge>
-        ))
-      ) : (
-        <span className="text-gray-400">Not specified</span>
-      )}
-    </div>
-  );
+  const renderBadges = (items?: string[]) => {
+    const safeItems = items || [];
+    return (
+      <div className="flex flex-wrap gap-2 mt-1">
+        {safeItems.length > 0 ? (
+          safeItems.map((item) => (
+            <Badge
+              key={item}
+              variant="default"
+              className="bg-blue-500/20 text-blue-300"
+            >
+              {item}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-gray-400">Not specified</span>
+        )}
+      </div>
+    );
+  };
 
   const renderEditableBadges = (
-    items: string[],
+    items: string[] = [],
     options: string[],
     toggleFn: (item: string) => void
   ) => (
@@ -195,11 +271,11 @@ const userProfilePage = () => {
           key={option}
           onClick={() => toggleFn(option)}
           className={`cursor-pointer select-none ${
-            items.includes(option)
+            (items || []).includes(option)
               ? "bg-blue-500 text-white"
               : "bg-slate-700 text-gray-200"
           }`}
-          variant={items.includes(option) ? "default" : "outline"}
+          variant={(items || []).includes(option) ? "default" : "outline"}
         >
           {option}
         </Badge>
@@ -311,7 +387,7 @@ const userProfilePage = () => {
                   <Zap className="h-5 w-5 mr-2 text-green-400" /> Skills &
                   Interests
                 </h2>
-                <Label className="text-white mb-2">Skills</Label>
+                <Label className="text-gray-400 mb-2">Skills</Label>
                 {isEditing
                   ? renderEditableBadges(
                       editData.skills,
@@ -319,7 +395,7 @@ const userProfilePage = () => {
                       handleSkillToggle
                     )
                   : renderBadges(formData.skills)}
-                <Label className="text-white mt-4 mb-2">Interests</Label>
+                <Label className="text-gray-400 mt-4 mb-2">Interests</Label>
                 {isEditing
                   ? renderEditableBadges(
                       editData.interests,
@@ -327,6 +403,17 @@ const userProfilePage = () => {
                       handleInterestToggle
                     )
                   : renderBadges(formData.interests)}
+                <Label className="text-gray mt-4 mb-2"></Label>
+                {isEditing ? (
+                  <>{renderEditableField("Expertise Areas", "expertiseArea")}</>
+                ) : (
+                  <>
+                    {renderField(
+                      "Expertise Areas",
+                      formData.expertiseArea.join(", ")
+                    )}
+                  </>
+                )}
               </div>
 
               <div>

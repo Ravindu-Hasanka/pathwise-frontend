@@ -1,600 +1,598 @@
 "use client";
-import { useState, useRef, ChangeEvent, FormEvent } from "react"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
-import Link from "next/link"
-import { cn } from "@/app/lib/utils";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "../../../components/ui/button";
+import { Card, CardContent } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import { Badge } from "../../../components/ui/badge";
+import {
+  User as UserIcon,
+  Briefcase,
+  MessageCircle,
+  Zap,
+  Edit,
+  Save,
+  X,
+  BookOpen,
+  Clock,
+  DollarSign,
+} from "lucide-react";
+import { skillOptions, interestOptions } from "@/app/utils/data";
+import { retrieveUser } from "../../../api/api";
+import { updateCoach } from "../../../api/api";
+import { toast } from "react-hot-toast";
 
 type FormData = {
-    firstName: string
-    lastName: string
-    username: string
-    phone: string
-    title: string
-    bio: string
-    website: string
-    facebook: string
-    instagram: string
-    linkedin: string
-    twitter: string
-    whatsapp: string
-    youtube: string
-    experience: string
-}
+  name: string;
+  email: string;
+  location: string;
+  currentRole: string;
+  experience: string;
+  expertiseArea: string[];
+  yearsOfExperience: string;
+  preferredIndustries: string[];
+  hourlyRate: string;
+  description: string;
+};
 
-type PasswordForm = {
-    currentPassword: string
-    newPassword: string
-    confirmPassword: string
-}
+type FormErrors = {
+  name?: string;
+  email?: string;
+  location?: string;
+  currentRole?: string;
+  yearsOfExperience?: string;
+  hourlyRate?: string;
+  description?: string;
+  preferredIndustries?: string;
+  expertiseArea?: string;
+};
 
-export default function CoachSettingsPage() {
-    const [formData, setFormData] = useState<FormData>({
-        firstName: "Alex",
-        lastName: "Thompson",
-        username: "alex.thompson",
-        phone: "+880123456789",
-        title: "Senior Software Developer",
-        bio: "Passionate about building scalable web applications and mentoring junior developers.",
-        website: "https://alexthompson.dev",
-        facebook: "alex.thompson",
-        instagram: "alex.thompson.dev",
-        linkedin: "alex-thompson-dev",
-        twitter: "alex_thompson",
-        whatsapp: "+880123456789",
-        youtube: "AlexThompsonDev",
-        experience: "10 years of experience in software development",
-    })
+const CoachProfilePage = () => {
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    email: "",
+    location: "",
+    currentRole: "",
+    experience: "",
+    expertiseArea: [],
+    yearsOfExperience: "",
+    preferredIndustries: [],
+    hourlyRate: "",
+    description: "",
+  });
 
-    const [passwordForm, setPasswordForm] = useState<PasswordForm>({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
-    })
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<FormData>({ ...formData });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [isEditing, setIsEditing] = useState(false);
-    const [isChangingPassword, setIsChangingPassword] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [profileImage, setProfileImage] = useState<string | null>("/default-avatar.jpg");
-    const [tempImage, setTempImage] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
+  useEffect(() => {
+    retrieveUser(1)
+      .then((res) => {
+        const user = res.data;
+        const profile = user.coachProfile || {};
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
-    }
-
-    const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value })
-    }
-
-    const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                if (event.target?.result) {
-                    setTempImage(event.target.result as string);
-                }
-            };
-
-            reader.readAsDataURL(file);
-        }
-    }
-
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-
-        // If a new image was selected, update the profile image
-        if (tempImage) {
-            setProfileImage(tempImage);
-            setTempImage(null);
-        }
-
-        setIsEditing(false);
-        toast({
-            title: "Profile Updated",
-            description: "Your profile has been successfully updated.",
-            duration: 3000,
-        });
-    }
-
-    const handlePasswordSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        // Password validation
-        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            toast({
-                title: "Password Mismatch",
-                description: "New password and confirm password do not match.",
-                variant: "destructive",
-                duration: 3000,
-            });
-            return;
-        }
-
-        // Password change logic would go here
-        toast({
-            title: "Password Changed",
-            description: "Your password has been successfully updated.",
-            duration: 3000,
+        setFormData({
+          name: user.name || "",
+          email: user.email || "",
+          location: profile.location || "",
+          currentRole: profile.currentRole || "",
+          experience: profile.experience || "",
+          expertiseArea: profile.expertiseArea || [],
+          yearsOfExperience: profile.yearsOfExperience || "",
+          preferredIndustries: profile.preferredIndustries || [],
+          hourlyRate: profile.hourlyRate || "",
+          description: profile.description || "",
         });
 
-        // Reset form and exit password change mode
-        setPasswordForm({
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: ""
+        setEditData({
+          name: user.name || "",
+          email: user.email || "",
+          location: profile.location || "",
+          currentRole: profile.currentRole || "",
+          experience: profile.experience || "",
+          expertiseArea: profile.expertiseArea || [],
+          yearsOfExperience: profile.yearsOfExperience || "",
+          preferredIndustries: profile.preferredIndustries || [],
+          hourlyRate: profile.hourlyRate || "",
+          description: profile.description || "",
         });
-        setIsChangingPassword(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load profile data");
+      });
+  }, []);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!editData.name.trim()) {
+      newErrors.name = "Name is required";
     }
 
-    const handleDeleteProfile = () => {
-        setDeleteDialogOpen(false);
-        toast({
-            title: "Profile Deleted",
-            description: "Your profile has been permanently deleted.",
-            duration: 3000,
-        });
+    if (!editData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email)) {
+      newErrors.email = "Invalid email format";
     }
 
-    const handleCancel = () => {
-        setTempImage(null);
-        setIsEditing(false);
+    if (!editData.location.trim()) {
+      newErrors.location = "Location is required";
     }
 
-    const handleCancelPasswordChange = () => {
-        setPasswordForm({
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: ""
-        });
-        setIsChangingPassword(false);
+    if (!editData.currentRole.trim()) {
+      newErrors.currentRole = "Current role is required";
     }
 
+    if (!editData.yearsOfExperience) {
+      newErrors.yearsOfExperience = "Years of experience is required";
+    }
+
+    if (!editData.hourlyRate) {
+      newErrors.hourlyRate = "Hourly rate is required";
+    }
+    if (!editData.expertiseArea) {
+      newErrors.expertiseArea = "Expertise area is required";
+    }
+
+    if (editData.preferredIndustries.length === 0) {
+      newErrors.preferredIndustries = "Select at least one preferred industry";
+    }
+
+    if (!editData.description.trim()) {
+      newErrors.description = "Description is required";
+    } else if (editData.description.length < 50) {
+      newErrors.description = "Description should be at least 50 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      setEditData({ ...formData });
+      setErrors({});
+    } else {
+      setEditData({ ...formData });
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { id, value } = e.target;
+    setEditData((prev) => ({ ...prev, [id]: value }));
+    // Clear error when user starts typing
+    if (errors[id as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [id]: undefined }));
+    }
+  };
+
+  const handleIndustryToggle = (preferredIndustries: string) => {
+    setEditData((prev) => ({
+      ...prev,
+      preferredIndustries: prev.preferredIndustries.includes(preferredIndustries)
+        ? prev.preferredIndustries.filter((s) => s !== preferredIndustries)
+        : [...prev.preferredIndustries, preferredIndustries],
+    }));
+    // Clear error when user selects an industry
+    if (errors.preferredIndustries) {
+      setErrors((prev) => ({ ...prev, preferredIndustries: undefined }));
+    }
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) {
+      toast.error("Please fix the errors before saving");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const userId = 1;
+
+      const expertiseArray =
+        typeof editData.expertiseArea === "string"
+          ? (editData.expertiseArea as string)
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s)
+          : editData.expertiseArea;
+
+      const updateData = {
+        name: editData.name,
+        email: editData.email,
+        location: editData.location,
+        currentRole: editData.currentRole,
+        experience: editData.experience,
+        expertiseArea: expertiseArray,
+        yearsOfExperience: editData.yearsOfExperience,
+        preferredIndustries: editData.preferredIndustries,
+        hourlyRate: editData.hourlyRate,
+        description: editData.description,
+      };
+
+      const res = await updateCoach(userId, updateData);
+
+      const updatedProfile = res.data.coachProfile || {};
+      setFormData({
+        ...editData,
+        ...updatedProfile,
+      });
+
+      setIsEditing(false);
+      toast.success("Profile updated successfully!");
+    } catch (err) {
+      console.error("Update failed:", err);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSelectChange = (field: keyof FormData, value: string) => {
+    setEditData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user selects an option
+    if (errors[field as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const renderField = (label: string, value: string) => (
+    <div className="mb-4">
+      <Label className="text-gray-400 text-sm">{label}</Label>
+      <div className="text-white mt-1">{value || "Not specified"}</div>
+    </div>
+  );
+
+  const renderEditableField = (
+    label: string,
+    id: keyof FormData,
+    type = "text",
+    isTextarea = false
+  ) => (
+    <div className="mb-4">
+      <Label htmlFor={id} className="text-white">
+        {label}
+      </Label>
+      {isTextarea ? (
+        <>
+          <textarea
+            id={id}
+            value={editData[id] as string}
+            onChange={handleInputChange}
+            className={`mt-1 w-full bg-slate-700 border ${
+              errors[id as keyof FormErrors] ? "border-red-500" : "border-slate-600"
+            } rounded-md p-2 text-white`}
+            rows={4}
+          />
+          {errors[id as keyof FormErrors] && (
+            <p className="mt-1 text-sm text-red-400">{errors[id as keyof FormErrors]}</p>
+          )}
+        </>
+      ) : (
+        <>
+          <Input
+            id={id}
+            value={editData[id] as string}
+            onChange={handleInputChange}
+            type={type}
+            className={`mt-1 bg-slate-700 ${
+              errors[id as keyof FormErrors] ? "border-red-500" : "border-slate-600"
+            }`}
+          />
+          {errors[id as keyof FormErrors] && (
+            <p className="mt-1 text-sm text-red-400">{errors[id as keyof FormErrors]}</p>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  const renderSelectField = (
+    label: string,
+    field: keyof FormData,
+    options: string[]
+  ) => (
+    <div className="mb-4">
+      <Label className="text-white">{label}</Label>
+      <Select
+        value={editData[field] as string}
+        onValueChange={(value) => handleSelectChange(field, value)}
+      >
+        <SelectTrigger
+          className={`mt-1 bg-slate-700 ${
+            errors[field as keyof FormErrors] ? "border-red-500" : "border-slate-600"
+          }`}
+        >
+          <SelectValue placeholder="Select an option" />
+        </SelectTrigger>
+        <SelectContent className="bg-slate-800 border-slate-700">
+          {options.map((option) => (
+            <SelectItem
+              key={option}
+              value={option}
+              className="hover:bg-slate-700"
+            >
+              {option.charAt(0).toUpperCase() + option.slice(1)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {errors[field as keyof FormErrors] && (
+        <p className="mt-1 text-sm text-red-400">{errors[field as keyof FormErrors]}</p>
+      )}
+    </div>
+  );
+
+  const renderBadges = (items?: string[]) => {
+    const safeItems = items || [];
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <Toaster />
-            <nav className="border-b border-white/10 bg-black/20 backdrop-blur-lg">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">P</span>
-                            </div>
-                            <span className="text-white font-bold text-xl">Pathwise</span>
-                        </div>
-                        <div className="hidden md:flex items-center space-x-8">
-                            <Link href="/coach/dashboard" className="text-gray-300 hover:text-white transition-colors">
-                                Dashboard
-                            </Link>
-                            <Link
-                                href="/coach/myCoachees/view"
-                                className="text-gray-300 hover:text-white transition-colors"
-                            >
-                                My Coachees
-                            </Link>
-                            <Link
-                                href="/coach/myCoachees/schedule"
-                                className="text-gray-300 hover:text-white transition-colors"
-                            >
-                                Schedule
-                            </Link>
-                            <Link
-                                href="/coach/incomingRequests/list"
-                                className="text-gray-300 hover:text-white transition-colors"
-                            >
-                                Requests
-                            </Link>
-                            <Link href="/coach/earnings" className="text-gray-300 hover:text-white transition-colors">
-                                Earnings
-                            </Link>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="text-right">
-                                <p className="text-white font-medium">Alex Thompson</p>
-                                <p className="text-gray-400 text-sm">Software Developer</p>
-                            </div>
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                                {profileImage ? (
-                                    <img
-                                        src={profileImage}
-                                        alt="Profile"
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-white font-bold">AT</span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-2xl font-bold text-white">Profile Settings</h1>
-                    {!isEditing ? (
-                        <div className="flex space-x-4">
-                            <Button
-                                onClick={() => setIsEditing(true)}
-                                className={cn(
-                                    buttonVariants({ variant: "default" }),
-                                    "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                                )}
-                            >
-                                Edit Profile
-                            </Button>
-                            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive">
-                                        Delete Profile
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently delete your profile and remove your data from our servers.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            onClick={handleDeleteProfile}
-                                            className={cn(
-                                                buttonVariants({ variant: "destructive" }),
-                                                "bg-destructive hover:bg-destructive/90"
-                                            )}
-                                        >
-                                            Delete Profile
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    ) : null}
-                </div>
+      <div className="flex flex-wrap gap-2 mt-1">
+        {safeItems.length > 0 ? (
+          safeItems.map((item) => (
+            <Badge
+              key={item}
+              variant="default"
+              className="bg-blue-500/20 text-blue-300"
+            >
+              {item}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-gray-400">Not specified</span>
+        )}
+      </div>
+    );
+  };
 
-                <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Profile Image Section */}
-                    <div className="flex flex-col items-center mb-8">
-                        {!isEditing ? (
-                            // View mode - show profile image
-                            <div className="relative">
-                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50">
-                                    {profileImage ? (
-                                        <img
-                                            src={profileImage}
-                                            alt="Profile"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                            <span className="text-gray-500">No Image</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            // Edit mode - show image upload and preview
-                            <div className="flex flex-col items-center">
-                                <div className="relative mb-4">
-                                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50">
-                                        {tempImage ? (
-                                            <img
-                                                src={tempImage}
-                                                alt="Profile preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : profileImage ? (
-                                            <img
-                                                src={profileImage}
-                                                alt="Profile"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                                <span className="text-gray-500">No Image</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+  const renderEditableBadges = (
+    items: string[] = [],
+    options: string[],
+    toggleFn: (item: string) => void,
+    error?: string
+  ) => (
+    <div>
+      <div className="flex flex-wrap gap-2 mt-1">
+        {options.map((option) => (
+          <Badge
+            key={option}
+            onClick={() => toggleFn(option)}
+            className={`cursor-pointer select-none ${
+              (items || []).includes(option)
+                ? "bg-blue-500 text-white"
+                : "bg-slate-700 text-gray-200"
+            }`}
+            variant={(items || []).includes(option) ? "default" : "outline"}
+          >
+            {option}
+          </Badge>
+        ))}
+      </div>
+      {error && <p className="mt-1 text-sm text-red-400">{error}</p>}
+    </div>
+  );
 
-                                <Input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    name="profileImage"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="hidden"
-                                />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="text-white border-white hover:bg-white/10"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    Change Profile Image
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Personal Information Section */}
-                    <div className="bg-black/20 backdrop-blur-lg rounded-xl p-6">
-                        <h2 className="text-xl font-bold text-white mb-6 pb-2 border-b border-white/10">
-                            Personal Information
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-2">
-                                    First Name
-                                </label>
-                                <Input
-                                    id="firstName"
-                                    name="firstName"
-                                    placeholder="First name"
-                                    value={formData.firstName}
-                                    onChange={handleChange}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-2">
-                                    Last Name
-                                </label>
-                                <Input
-                                    id="lastName"
-                                    name="lastName"
-                                    placeholder="Last name"
-                                    value={formData.lastName}
-                                    onChange={handleChange}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                            <div>
-                                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                                    Username
-                                </label>
-                                <Input
-                                    id="username"
-                                    name="username"
-                                    placeholder="Enter your username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
-                                    Phone Number
-                                </label>
-                                <Input
-                                    id="phone"
-                                    name="phone"
-                                    placeholder="+880..."
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mt-6">
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                                Professional Title
-                            </label>
-                            <Input
-                                id="title"
-                                name="title"
-                                placeholder="Your title or role"
-                                value={formData.title}
-                                onChange={handleChange}
-                                disabled={!isEditing}
-                            />
-                        </div>
-
-                        <div className="mt-6">
-                            <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
-                                Biography
-                            </label>
-                            <Textarea
-                                id="bio"
-                                name="bio"
-                                placeholder="Short biography..."
-                                value={formData.bio}
-                                onChange={handleChange}
-                                disabled={!isEditing}
-                                rows={4}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Social Profiles Section */}
-                    <div className="bg-black/20 backdrop-blur-lg rounded-xl p-6">
-                        <h2 className="text-xl font-bold text-white mb-6 pb-2 border-b border-white/10">
-                            Social Profiles
-                        </h2>
-
-                        <div className="mt-6">
-                            <label htmlFor="website" className="block text-sm font-medium text-gray-300 mb-2">
-                                Website
-                            </label>
-                            <Input
-                                id="website"
-                                name="website"
-                                placeholder="https://..."
-                                value={formData.website}
-                                onChange={handleChange}
-                                disabled={!isEditing}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                            {["facebook", "instagram", "linkedin", "twitter", "whatsapp", "youtube"].map((platform) => (
-                                <div key={platform}>
-                                    <label
-                                        htmlFor={platform}
-                                        className="block text-sm font-medium text-gray-300 mb-2 capitalize"
-                                    >
-                                        {platform}
-                                    </label>
-                                    <Input
-                                        id={platform}
-                                        name={platform}
-                                        placeholder={`Your ${platform} profile`}
-                                        value={formData[platform as keyof FormData]}
-                                        onChange={handleChange}
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Work Experience Section */}
-                    <div className="bg-black/20 backdrop-blur-lg rounded-xl p-6">
-                        <h2 className="text-xl font-bold text-white mb-6 pb-2 border-b border-white/10">
-                            Work Experience
-                        </h2>
-
-                        <div className="mt-6">
-                            <label htmlFor="experience" className="block text-sm font-medium text-gray-300 mb-2">
-                                Professional Experience
-                            </label>
-                            <Textarea
-                                id="experience"
-                                name="experience"
-                                rows={6}
-                                placeholder="Describe your professional experience..."
-                                value={formData.experience}
-                                onChange={handleChange}
-                                disabled={!isEditing}
-                            />
-                        </div>
-                    </div>
-
-                    {isEditing && (
-                        <div className="flex space-x-4 justify-end">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="text-white border-white hover:bg-white/10"
-                                onClick={handleCancel}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                className={cn(
-                                    buttonVariants({ variant: "default" }),
-                                    "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                                )}
-                            >
-                                Save Profile
-                            </Button>
-                        </div>
-                    )}
-                </form>
-
-                {/* Change Password Section */}
-                <div className="bg-black/20 backdrop-blur-lg rounded-xl p-6 mt-8">
-                    <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/10">
-                        <h2 className="text-xl font-bold text-white">
-                            Password Settings
-                        </h2>
-                        {!isChangingPassword ? (
-                            <Button
-                                onClick={() => setIsChangingPassword(true)}
-                                variant="outline"
-                                className="text-white border-white hover:bg-white/10"
-                            >
-                                Change Password
-                            </Button>
-                        ) : null}
-                    </div>
-
-                    {isChangingPassword ? (
-                        <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                            <div>
-                                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                                    Current Password
-                                </label>
-                                <Input
-                                    type="password"
-                                    id="currentPassword"
-                                    name="currentPassword"
-                                    placeholder="Enter your current password"
-                                    value={passwordForm.currentPassword}
-                                    onChange={handlePasswordChange}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                                        New Password
-                                    </label>
-                                    <Input
-                                        type="password"
-                                        id="newPassword"
-                                        name="newPassword"
-                                        placeholder="Enter a new password"
-                                        value={passwordForm.newPassword}
-                                        onChange={handlePasswordChange}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                                        Confirm New Password
-                                    </label>
-                                    <Input
-                                        type="password"
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        placeholder="Confirm your new password"
-                                        value={passwordForm.confirmPassword}
-                                        onChange={handlePasswordChange}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex space-x-4 justify-end">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="text-white border-white hover:bg-white/10"
-                                    onClick={handleCancelPasswordChange}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    className={cn(
-                                        buttonVariants({ variant: "default" }),
-                                        "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                                    )}
-                                >
-                                    Update Password
-                                </Button>
-                            </div>
-                        </form>
-                    ) : (
-                        <p className="text-gray-400">
-                            For security, your password is not shown here. Click "Change Password" to update it.
-                        </p>
-                    )}
-                </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">P</span>
             </div>
+            <span className="text-white font-bold text-xl">Pathwise</span>
+          </div>
+          <Button
+            onClick={isEditing ? handleSave : handleEditToggle}
+            variant={isEditing ? "default" : "outline"}
+            className={
+              isEditing
+                ? "bg-green-600 hover:bg-green-700"
+                : "border-white/20 text-gray-300 hover:bg-white/10"
+            }
+            disabled={isSubmitting}
+          >
+            {isEditing ? (
+              <>
+                <Save className="mr-2 h-4 w-4" />{" "}
+                {isSubmitting ? "Saving..." : "Save Profile"}
+              </>
+            ) : (
+              <>
+                <Edit className="mr-2 h-4 w-4" /> Edit Profile
+              </>
+            )}
+          </Button>
         </div>
-    )
-}
+
+        <Card className="bg-slate-800/50 border-white/10 backdrop-blur-sm">
+          <CardContent className="p-8">
+            <div className="flex items-center space-x-4 mb-8 pt-3">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                <UserIcon className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">
+                  {formData.name}
+                </h1>
+                <p className="text-gray-300">{formData.currentRole}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+                  <UserIcon className="h-5 w-5 mr-2 text-blue-400" /> Personal
+                  Information
+                </h2>
+                {isEditing ? (
+                  <>
+                    {renderEditableField("Full Name", "name")}
+                    {renderEditableField("Email", "email", "email")}
+                    {renderEditableField("Location", "location")}
+                    {renderEditableField("Current Role", "currentRole")}
+                  </>
+                ) : (
+                  <>
+                    {renderField("Full Name", formData.name)}
+                    {renderField("Email", formData.email)}
+                    {renderField("Location", formData.location)}
+                    {renderField("Current Role", formData.currentRole)}
+                  </>
+                )}
+              </div>
+
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+                  <BookOpen className="h-5 w-5 mr-2 text-purple-400" /> Coaching
+                  Background
+                </h2>
+                {isEditing ? (
+                  <>
+                    {renderSelectField(
+                      "Years of Coaching Experience",
+                      "yearsOfExperience",
+                      [
+                        "0-1 years",
+                        "2-3 years",
+                        "4-6 years",
+                        "7-10 years",
+                        "10+ years",
+                      ]
+                    )}
+                    {renderSelectField("Hourly Rate", "hourlyRate", [
+                      "Under $50/hr",
+                      "$50 - $100/hr",
+                      "$100 - $200/hr",
+                      "$200 - $300/hr",
+                      "$300+",
+                    ])}
+                  </>
+                ) : (
+                  <>
+                    {renderField(
+                      "Years of Coaching Experience",
+                      formData.yearsOfExperience
+                    )}
+                    {renderField("Hourly Rate", formData.hourlyRate)}
+                  </>
+                )}
+              </div>
+
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+                  <Zap className="h-5 w-5 mr-2 text-green-400" /> Expertise
+                </h2>
+                <Label className="text-gray-400 mt-4 mb-2">
+                  Preferred Industries
+                </Label>
+                {isEditing ? (
+                  renderEditableBadges(
+                    editData.preferredIndustries,
+                    interestOptions,
+                    handleIndustryToggle,
+                    errors.preferredIndustries
+                  )
+                ) : (
+                  renderBadges(formData.preferredIndustries)
+                )}
+                <div className="mt-6 mb-8">
+                  {isEditing ? (
+                    <>
+                      <Label className="text-white">Expertise Areas</Label>
+                      <Input
+                        id="expertiseArea"
+                        value={
+                          Array.isArray(editData.expertiseArea)
+                            ? editData.expertiseArea.join(", ")
+                            : editData.expertiseArea
+                        }
+                        onChange={handleInputChange}
+                        className={`mt-1 bg-slate-700 ${
+                          errors.expertiseArea
+                            ? "border-red-500"
+                            : "border-slate-600"
+                        }`}
+                        placeholder="Enter expertise areas, separated by commas"
+                      />
+                      {errors.expertiseArea && (
+                        <p className="mt-1 text-sm text-red-400">
+                          {errors.expertiseArea}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {renderField(
+                        "Expertise Areas",
+                        formData.expertiseArea.join(", ")
+                      )}
+                    </>
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+                    <MessageCircle className="h-5 w-5 mr-2 text-orange-400" />{" "}
+                    About
+                  </h2>
+                  {isEditing ? (
+                    renderEditableField(
+                      "Description",
+                      "description",
+                      "text",
+                      true
+                    )
+                  ) : (
+                    <div className="mb-4">
+                      <Label className="text-gray-400 text-sm">
+                        Description
+                      </Label>
+                      <div className="text-white mt-1 whitespace-pre-line">
+                        {formData.description || "No description provided"}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {isEditing && (
+              <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-white/10">
+                <Button
+                  variant="outline"
+                  onClick={handleEditToggle}
+                  className="border-white/20 text-gray-300 hover:bg-white/10"
+                  disabled={isSubmitting}
+                >
+                  <X className="mr-2 h-4 w-4" /> Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  disabled={isSubmitting}
+                >
+                  <Save className="mr-2 h-4 w-4" />{" "}
+                  {isSubmitting ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default CoachProfilePage;
