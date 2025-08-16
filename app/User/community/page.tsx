@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -37,21 +37,28 @@ export default function CommunityPage() {
 
   const [activeChat, setActiveChat] = useState<string | null>(null);
   type ConnectionRequest = {
-    id: number;
-    name: string;
-    role: string;
-    avatar: string;
-    mutual: number;
+    connectionId: number;
+    userId: string;
+    userName: string;
+    jobRole: string;
+    email: boolean;
+    requestedAt: boolean;
+    avatar?: string;
+    mutual?: number;
   };
 
   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
 
   type Connection = {
-    id: number;
-    name: string;
-    role: string;
-    avatar: string;
-    online: boolean;
+    connectionId: number;
+    userId: string;
+    userName: string;
+    jobRole: string;
+    email: boolean;
+    requestedAt: boolean;
+    avatar?: string;
+    mutual?: number;
+    online?: boolean;
   };
 
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -82,9 +89,9 @@ export default function CommunityPage() {
       type: "event",
     },
   ]);
+
   type FeedPost = {
     id: number;
-    title?: string;
     content: string;
     images?: string[];
     time?: string;
@@ -137,6 +144,10 @@ export default function CommunityPage() {
       },
     ],
   });
+  const [postContent, setPostContent] = useState("");
+  const [commentsByPost, setCommentsByPost] = useState<Record<number, Array<{ id: number; author: { id: number; name: string }; text: string }>>>({});
+  const [newComment, setNewComment] = useState<Record<number, string>>({});
+
   useEffect(() => {
     if (activeTab === "feed") {
       fetchActivityFeed();
@@ -152,7 +163,7 @@ export default function CommunityPage() {
         headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
-        setConnectionRequests(connectionRequests.filter((req) => req.id !== connectionId));
+        setConnectionRequests(connectionRequests.filter((req) => req.connectionId !== connectionId));
       }
     } catch (error) {
       console.error("Error accepting connection:", error);
@@ -167,7 +178,7 @@ export default function CommunityPage() {
         headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
-        setConnectionRequests(connectionRequests.filter((req) => req.id !== connectionId));
+        setConnectionRequests(connectionRequests.filter((req) => req.connectionId !== connectionId));
       }
     } catch (error) {
       console.error("Error ignoring connection:", error);
@@ -205,8 +216,7 @@ export default function CommunityPage() {
     }
     fetchActivityFeed();
   };
-  const createPost = async (postRequest: {
-    title: string;
+  const createPost = async (post: {
     content: string;
     imageUrl?: string;
     author: { id: number };
@@ -215,7 +225,7 @@ export default function CommunityPage() {
       const res = await fetch("http://localhost:8080/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postRequest),
+        body: JSON.stringify(post),
       });
       if (!res.ok) throw new Error("Failed to create post");
       const data = await res.json();
@@ -277,11 +287,12 @@ export default function CommunityPage() {
       })
       .then((data) => {
         setConnections(
-          data.map((user: any) => ({
-            id: user.id,
-            name: user.name,
-            role: user.role,
-            avatar: user.avatar || user.name.split(" ").map((n: string) => n[0]).join(""),
+          data.map((conn: any) => ({
+            connectionId: conn.id,
+            userName: conn.requestedUserName,
+            email: conn.email,
+            jobRole: conn.jobRole,
+            avatar: conn.avatar || conn.requestedUserName.split(" ").map((n: string) => n[0]).join(""),
             online: false,
           }))
         );
@@ -297,14 +308,16 @@ export default function CommunityPage() {
         return res.json();
       })
       .then((data) => {
-        console.log("Connection requests response:", data); // Log the response
+        console.log("Connection requests response:", data);
         setConnectionRequests(
-          data.map((user: any) => ({
-            id: user.id,
-            name: user.name,
-            role: user.role,
-            avatar: user.avatar || user.name.split(" ").map((n: string) => n[0]).join(""),
-            mutual: user.mutual || 0,
+          data.map((conn: any) => ({
+            connectionId: conn.connectionId,
+            userId: conn.requestedUserId,
+            userName: conn.requestedUserName,
+            jobRole: conn.jobRole,
+            avatar: conn.avatar || conn.requestedUserName.split(" ").map((n: string) => n[0]).join(""),
+            email: conn.email,
+
           }))
         );
       })
@@ -320,6 +333,36 @@ export default function CommunityPage() {
     } catch (err) {
       console.error(err);
       return 0;
+    }
+  };
+
+  // Fetch comments for a post
+  const fetchComments = async (postId: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/comments/post/${postId}`);
+      if (!res.ok) throw new Error("Failed to fetch comments");
+      const data = await res.json();
+      setCommentsByPost((prev) => ({ ...prev, [postId]: data }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  const addComment = async (postId: number, userId: number) => {
+    const text = newComment[postId];
+    if (!text?.trim()) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/comments/post/${postId}?userId=${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: text,
+      });
+      if (!res.ok) throw new Error("Failed to add comment");
+      setNewComment((prev) => ({ ...prev, [postId]: "" }));
+      fetchComments(postId);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -388,7 +431,7 @@ export default function CommunityPage() {
                     <div className="space-y-4">
                       {connectionRequests.map((request) => (
                         <Card
-                          key={request.id}
+                          key={request.connectionId}
                           className="bg-slate-700/30 border-white/10"
                         >
                           <CardContent className="p-4">
@@ -400,10 +443,13 @@ export default function CommunityPage() {
                               </Avatar>
                               <div>
                                 <h4 className="text-white font-medium">
-                                  {request.name}
+                                  {request.userName}
+                                </h4>
+                                <h4 className="text-white font-medium">
+                                  {request.email}
                                 </h4>
                                 <p className="text-gray-300 text-sm">
-                                  {request.role}
+                                  {request.jobRole}
                                 </p>
                                 <p className="text-blue-400 text-xs">
                                   {request.mutual} mutual connections
@@ -414,7 +460,7 @@ export default function CommunityPage() {
                               <Button
                                 size="sm"
                                 className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                                onClick={() => handleConnect(request.id)}
+                                onClick={() => handleConnect(request.connectionId)}
                               >
                                 Accept
                               </Button>
@@ -422,7 +468,7 @@ export default function CommunityPage() {
                                 variant="outline"
                                 size="sm"
                                 className="flex-1 border-white/20 text-gray-300 hover:bg-white/10"
-                                onClick={() => handleIgnore(request.id)}
+                                onClick={() => handleIgnore(request.connectionId)}
                               >
                                 Ignore
                               </Button>
@@ -453,7 +499,7 @@ export default function CommunityPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {connections.map((connection) => (
                         <Card
-                          key={connection.id}
+                          key={connection.connectionId}
                           className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors"
                         >
                           <CardContent className="p-4">
@@ -471,10 +517,10 @@ export default function CommunityPage() {
                                 </div>
                                 <div>
                                   <h4 className="text-white font-medium">
-                                    {connection.name}
+                                    {connection.userName}
                                   </h4>
                                   <p className="text-gray-300 text-sm">
-                                    {connection.role}
+                                    {connection.jobRole}
                                   </p>
                                 </div>
                               </div>
@@ -484,7 +530,7 @@ export default function CommunityPage() {
                                 className="text-blue-400 hover:bg-blue-400/10"
                                 onClick={() => {
                                   setActiveTab("messages");
-                                  setActiveChat(connection.name);
+                                  setActiveChat(connection.userName);
                                 }}
                               >
                                 <MessageSquare className="h-4 w-4" />
@@ -642,6 +688,8 @@ export default function CommunityPage() {
                             <Input
                               placeholder="Share an update with the community..."
                               className="bg-slate-700 border-slate-600"
+                              value={postContent}
+                              onChange={(e) => setPostContent(e.target.value)}
                             />
                           </div>
                           <div className="flex items-center justify-between mt-3">
@@ -700,11 +748,13 @@ export default function CommunityPage() {
                               size="sm"
                               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                               onClick={() => {
-                                createPost({
-                                  title: "New Post",
-                                  content: "This is a new post.",
-                                  author: { id: 1 },
-                                });
+                                if (postContent.trim()) {
+                                  createPost({
+                                    content: postContent,
+                                    author: { id: 1 },
+                                  });
+                                  setPostContent("");
+                                }
                               }}
                             >
                               Post
@@ -715,10 +765,7 @@ export default function CommunityPage() {
 
                       {/* Feed Posts */}
                       {feedPosts.map((post) => (
-                        <Card
-                          key={post.id}
-                          className="bg-slate-700/30 border-white/10"
-                        >
+                        <Card key={post.id} className="bg-slate-700/30 border-white/10">
                           <CardContent className="p-4">
                             <div className="flex items-center space-x-3 mb-3">
                               <Avatar>
@@ -773,13 +820,13 @@ export default function CommunityPage() {
                                         alt={`Post by ${post.user.name}`}
                                         className="w-full h-full object-cover rounded-lg"
                                       />
-                                      {post.images?.length > 4 && idx === 3 && (
+                                      {/* {post.images?.length > 4 && idx === 3 && (
                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
                                           <span className="text-white font-bold text-lg">
                                             +{(post.images?.length ?? 0) - 4}
                                           </span>
                                         </div>
-                                      )}
+                                      )} */}
                                     </div>
                                   ))}
                                 </div>
@@ -795,7 +842,10 @@ export default function CommunityPage() {
                                   <ThumbsUp className="h-4 w-4 mr-1" />
                                   {post.likes} Likes
                                 </button>
-                                <button className="flex items-center hover:text-blue-400">
+                                <button
+                                  className="flex items-center hover:text-blue-400"
+                                  onClick={() => fetchComments(post.id)}
+                                >
                                   <MessageCircle className="h-4 w-4 mr-1" />
                                   {post.comments} Comments
                                 </button>
@@ -804,6 +854,32 @@ export default function CommunityPage() {
                                 <Share2 className="h-4 w-4" />
                               </button>
                             </div>
+                            {/* Comments Section */}
+                            {commentsByPost[post.id] && (
+                              <div className="mt-4 space-y-2">
+                                {commentsByPost[post.id].map((c) => (
+                                  <div key={c.id} className="text-gray-200 text-sm border-b border-slate-600 pb-1">
+                                    <span className="font-semibold">{c.author.name}: </span>
+                                    {c.text}
+                                  </div>
+                                ))}
+                                <div className="flex mt-2 space-x-2">
+                                  <Input
+                                    value={newComment[post.id] || ""}
+                                    onChange={e => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                    placeholder="Write a comment..."
+                                    className="bg-slate-800 border-slate-700"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => addComment(post.id, 1)}
+                                    className="bg-gradient-to-r from-blue-500 to-purple-600"
+                                  >
+                                    post
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
