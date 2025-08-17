@@ -31,9 +31,9 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import React from "react";
-import { coachDetails } from "../../page";
 import { use } from "react";
 import Navbar from "@/components/ui/navbar";
+import {coachDetails} from "@/app/user/explore/coachDetails";
 
 interface PageProps {
   params: Promise<{ id: string }>;
