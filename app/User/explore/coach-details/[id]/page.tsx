@@ -33,7 +33,7 @@ import {
 import React from "react";
 import { use } from "react";
 import Navbar from "@/components/ui/navbar";
-import {coachDetails} from "@/app/user/explore/coachDetails";
+import {coachDetails} from "../../coachDetails";
 
 interface PageProps {
   params: Promise<{ id: string }>;
