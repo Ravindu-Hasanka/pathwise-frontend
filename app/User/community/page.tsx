@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -34,61 +34,34 @@ import Navbar from "../../../components/ui/navbar";
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState("network");
   const [message, setMessage] = useState("");
-  const [activeChat, setActiveChat] = useState<string | null>(null);
-  const [connectionRequests, setConnectionRequests] = useState([
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      role: "Senior UX Designer",
-      avatar: "SJ",
-      mutual: 5,
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      role: "Tech Lead at Google",
-      avatar: "MC",
-      mutual: 12,
-    },
-    {
-      id: 3,
-      name: "Emma Rodriguez",
-      role: "Recruiter at Microsoft",
-      avatar: "ER",
-      mutual: 3,
-    },
-  ]);
 
-  const [connections, setConnections] = useState([
-    {
-      id: 1,
-      name: "Alex Thompson",
-      role: "Software Engineer",
-      avatar: "AT",
-      online: true,
-    },
-    {
-      id: 2,
-      name: "Priya Patel",
-      role: "Product Manager",
-      avatar: "PP",
-      online: false,
-    },
-    {
-      id: 3,
-      name: "David Kim",
-      role: "Data Scientist",
-      avatar: "DK",
-      online: true,
-    },
-    {
-      id: 4,
-      name: "Lisa Wong",
-      role: "Frontend Developer",
-      avatar: "LW",
-      online: false,
-    },
-  ]);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
+  type ConnectionRequest = {
+    connectionId: number;
+    userId: string;
+    userName: string;
+    jobRole: string;
+    email: boolean;
+    requestedAt: boolean;
+    avatar?: string;
+    mutual?: number;
+  };
+
+  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+
+  type Connection = {
+    connectionId: number;
+    userId: string;
+    userName: string;
+    jobRole: string;
+    email: boolean;
+    requestedAt: boolean;
+    avatar?: string;
+    mutual?: number;
+    online?: boolean;
+  };
+
+  const [connections, setConnections] = useState<Connection[]>([]);
 
   const [announcements, setAnnouncements] = useState([
     {
@@ -117,38 +90,26 @@ export default function CommunityPage() {
     },
   ]);
 
-  const [feedPosts, setFeedPosts] = useState([
-    {
-      id: 1,
-      user: { name: "Alex Thompson", role: "Software Engineer", avatar: "AT" },
-      content:
-        "Just completed the Advanced React course! Highly recommend it to anyone looking to level up their frontend skills.",
-      likes: 12,
-      comments: 4,
-      time: "2 hours ago",
-      images: [post1.src],
-    },
-    {
-      id: 2,
-      user: { name: "Priya Patel", role: "Product Manager", avatar: "PP" },
-      content:
-        "Sharing an interesting article about the future of AI in product management: [link]",
-      likes: 8,
-      comments: 3,
-      time: "5 hours ago",
-      images: [],
-    },
-    {
-      id: 3,
-      user: { name: "David Kim", role: "Data Scientist", avatar: "DK" },
-      content:
-      "Proud to share that I’ve earned a new certificate in Udemy! Grateful for the opportunity to expand my knowledge and skills. #achievement #lifelonglearning #certificate",
-      likes: 15,
-      comments: 7,
-      time: "1 day ago",
-      images: [post2.src],
-    },
-  ]);
+  type FeedPost = {
+    id: number;
+    content: string;
+    images?: string[];
+    time?: string;
+    likes: number;
+    comments: number;
+    user: {
+      name: string;
+      role: string;
+      avatar: string;
+    };
+    author?: {
+      id: number;
+      name: string;
+      email?: string;
+      role?: string;
+    };
+  };
+  const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
 
   const [messages, setMessages] = useState<
     Record<string, Array<{ sender: string; text: string; time: string }>>
@@ -183,26 +144,45 @@ export default function CommunityPage() {
       },
     ],
   });
+  const [postContent, setPostContent] = useState("");
+  const [commentsByPost, setCommentsByPost] = useState<Record<number, Array<{ id: number; author: { id: number; name: string }; text: string }>>>({});
+  const [newComment, setNewComment] = useState<Record<number, string>>({});
 
-  const handleConnect = (id: number) => {
-    const request = connectionRequests.find((req) => req.id === id);
-    if (request) {
-      setConnections([
-        ...connections,
-        {
-          id: request.id,
-          name: request.name,
-          role: request.role,
-          avatar: request.avatar,
-          online: false,
-        },
-      ]);
-      setConnectionRequests(connectionRequests.filter((req) => req.id !== id));
+  useEffect(() => {
+    if (activeTab === "feed") {
+      fetchActivityFeed();
+    } else if (activeTab === "network") {
+      fetchConnections();
     }
+  }, [activeTab]);
+
+  const handleConnect = async (connectionId: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/network/accept/${connectionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setConnectionRequests(connectionRequests.filter((req) => req.connectionId !== connectionId));
+      }
+    } catch (error) {
+      console.error("Error accepting connection:", error);
+    }
+    fetchConnections();
   };
 
-  const handleIgnore = (id: number) => {
-    setConnectionRequests(connectionRequests.filter((req) => req.id !== id));
+  const handleIgnore = async (connectionId: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/network/accept/${connectionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setConnectionRequests(connectionRequests.filter((req) => req.connectionId !== connectionId));
+      }
+    } catch (error) {
+      console.error("Error ignoring connection:", error);
+    }
   };
 
   const handleSendMessage = () => {
@@ -220,6 +200,169 @@ export default function CommunityPage() {
         [activeChat]: [...(prev[activeChat] || []), newMessage],
       }));
       setMessage("");
+    }
+  };
+
+  const handleToggleLike = async (postId: number) => {
+    const userId = 1;
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/likes/post/${postId}?userId=${userId}`,
+        { method: "POST" }
+      );
+      if (!res.ok) throw new Error("Failed to toggle like");
+    } catch (err) {
+      console.error(err);
+    }
+    fetchActivityFeed();
+  };
+  const createPost = async (post: {
+    content: string;
+    imageUrl?: string;
+    author: { id: number };
+  }) => {
+    try {
+      const res = await fetch("http://localhost:8080/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(post),
+      });
+      if (!res.ok) throw new Error("Failed to create post");
+      const data = await res.json();
+      // Optionally refresh feed after post
+      fetchActivityFeed();
+      return data;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchActivityFeed = async () => {
+    const userId = 1;
+    try {
+      const res = await fetch(`http://localhost:8080/api/posts/activity-feed/${userId}`);
+      if (!res.ok) throw new Error("Failed to fetch activity feed");
+      const data = await res.json();
+
+      // Fetch like counts for each post
+      const mappedPosts = await Promise.all(
+        data.map(async (post: any) => {
+          const likeCount = await fetchLikeCount(post.id);
+          return {
+            id: post.id,
+            user: {
+              name: post.author?.name ?? "Unknown",
+              role: post.author?.role ?? "",
+              avatar: post.author?.name
+                ? post.author.name.split(" ").map((n: string) => n[0]).join("")
+                : "U",
+            },
+            content: post.content,
+            likes: likeCount,
+            comments: Array.isArray(post.comments) ? post.comments.length : 0,
+            time: post.createdAt
+              ? new Date(post.createdAt).toLocaleString()
+              : "",
+            images: post.imageUrl ? [post.imageUrl] : [],
+            author: post.author,
+          };
+        })
+      );
+      setFeedPosts(mappedPosts);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  const fetchConnections = () => {
+    const userId = 1;
+
+    fetch(`http://localhost:8080/api/network/${userId}/connections`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setConnections(
+          data.map((conn: any) => ({
+            connectionId: conn.id,
+            userName: conn.requestedUserName,
+            email: conn.email,
+            jobRole: conn.jobRole,
+            avatar: conn.avatar || conn.requestedUserName.split(" ").map((n: string) => n[0]).join(""),
+            online: false,
+          }))
+        );
+      })
+      .catch((err) => console.error("Failed to fetch connections", err));
+
+    // Fetch connection requests
+    fetch(`http://localhost:8080/api/network/${userId}/requests`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Connection requests response:", data);
+        setConnectionRequests(
+          data.map((conn: any) => ({
+            connectionId: conn.connectionId,
+            userId: conn.requestedUserId,
+            userName: conn.requestedUserName,
+            jobRole: conn.jobRole,
+            avatar: conn.avatar || conn.requestedUserName.split(" ").map((n: string) => n[0]).join(""),
+            email: conn.email,
+
+          }))
+        );
+      })
+      .catch((err) => console.error("Failed to fetch connection requests", err));
+  }
+
+  const fetchLikeCount = async (postId: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/likes/post/${postId}`);
+      if (!res.ok) throw new Error("Failed to fetch like count");
+      const count = await res.json();
+      return count;
+    } catch (err) {
+      console.error(err);
+      return 0;
+    }
+  };
+
+  // Fetch comments for a post
+  const fetchComments = async (postId: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/comments/post/${postId}`);
+      if (!res.ok) throw new Error("Failed to fetch comments");
+      const data = await res.json();
+      setCommentsByPost((prev) => ({ ...prev, [postId]: data }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  const addComment = async (postId: number, userId: number) => {
+    const text = newComment[postId];
+    if (!text?.trim()) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/comments/post/${postId}?userId=${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: text,
+      });
+      if (!res.ok) throw new Error("Failed to add comment");
+      setNewComment((prev) => ({ ...prev, [postId]: "" }));
+      fetchComments(postId);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -288,7 +431,7 @@ export default function CommunityPage() {
                     <div className="space-y-4">
                       {connectionRequests.map((request) => (
                         <Card
-                          key={request.id}
+                          key={request.connectionId}
                           className="bg-slate-700/30 border-white/10"
                         >
                           <CardContent className="p-4">
@@ -300,10 +443,13 @@ export default function CommunityPage() {
                               </Avatar>
                               <div>
                                 <h4 className="text-white font-medium">
-                                  {request.name}
+                                  {request.userName}
+                                </h4>
+                                <h4 className="text-white font-medium">
+                                  {request.email}
                                 </h4>
                                 <p className="text-gray-300 text-sm">
-                                  {request.role}
+                                  {request.jobRole}
                                 </p>
                                 <p className="text-blue-400 text-xs">
                                   {request.mutual} mutual connections
@@ -314,7 +460,7 @@ export default function CommunityPage() {
                               <Button
                                 size="sm"
                                 className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                                onClick={() => handleConnect(request.id)}
+                                onClick={() => handleConnect(request.connectionId)}
                               >
                                 Accept
                               </Button>
@@ -322,7 +468,7 @@ export default function CommunityPage() {
                                 variant="outline"
                                 size="sm"
                                 className="flex-1 border-white/20 text-gray-300 hover:bg-white/10"
-                                onClick={() => handleIgnore(request.id)}
+                                onClick={() => handleIgnore(request.connectionId)}
                               >
                                 Ignore
                               </Button>
@@ -353,7 +499,7 @@ export default function CommunityPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {connections.map((connection) => (
                         <Card
-                          key={connection.id}
+                          key={connection.connectionId}
                           className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors"
                         >
                           <CardContent className="p-4">
@@ -371,10 +517,10 @@ export default function CommunityPage() {
                                 </div>
                                 <div>
                                   <h4 className="text-white font-medium">
-                                    {connection.name}
+                                    {connection.userName}
                                   </h4>
                                   <p className="text-gray-300 text-sm">
-                                    {connection.role}
+                                    {connection.jobRole}
                                   </p>
                                 </div>
                               </div>
@@ -384,7 +530,7 @@ export default function CommunityPage() {
                                 className="text-blue-400 hover:bg-blue-400/10"
                                 onClick={() => {
                                   setActiveTab("messages");
-                                  setActiveChat(connection.name);
+                                  setActiveChat(connection.userName);
                                 }}
                               >
                                 <MessageSquare className="h-4 w-4" />
@@ -431,19 +577,18 @@ export default function CommunityPage() {
                             <div className="flex items-center mb-1">
                               <Badge
                                 variant="outline"
-                                className={`mr-2 ${
-                                  announcement.type === "webinar"
-                                    ? "border-blue-500/30 text-blue-400"
-                                    : announcement.type === "event"
+                                className={`mr-2 ${announcement.type === "webinar"
+                                  ? "border-blue-500/30 text-blue-400"
+                                  : announcement.type === "event"
                                     ? "border-purple-500/30 text-purple-400"
                                     : "border-green-500/30 text-green-400"
-                                }`}
+                                  }`}
                               >
                                 {announcement.type === "webinar"
                                   ? "Webinar"
                                   : announcement.type === "event"
-                                  ? "Event"
-                                  : "Update"}
+                                    ? "Event"
+                                    : "Update"}
                               </Badge>
                               <span className="text-gray-400 text-sm">
                                 {announcement.date}
@@ -543,6 +688,8 @@ export default function CommunityPage() {
                             <Input
                               placeholder="Share an update with the community..."
                               className="bg-slate-700 border-slate-600"
+                              value={postContent}
+                              onChange={(e) => setPostContent(e.target.value)}
                             />
                           </div>
                           <div className="flex items-center justify-between mt-3">
@@ -600,6 +747,15 @@ export default function CommunityPage() {
                             <Button
                               size="sm"
                               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                              onClick={() => {
+                                if (postContent.trim()) {
+                                  createPost({
+                                    content: postContent,
+                                    author: { id: 1 },
+                                  });
+                                  setPostContent("");
+                                }
+                              }}
                             >
                               Post
                             </Button>
@@ -609,20 +765,20 @@ export default function CommunityPage() {
 
                       {/* Feed Posts */}
                       {feedPosts.map((post) => (
-                        <Card
-                          key={post.id}
-                          className="bg-slate-700/30 border-white/10"
-                        >
+                        <Card key={post.id} className="bg-slate-700/30 border-white/10">
                           <CardContent className="p-4">
                             <div className="flex items-center space-x-3 mb-3">
                               <Avatar>
                                 <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600">
-                                  {post.user.avatar}
+                                  {post.user?.avatar ??
+                                    (post.user?.name
+                                      ? post.user.name.split(" ").map((n: string) => n[0]).join("")
+                                      : "U")}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <h4 className="text-white font-medium">
-                                  {post.user.name}
+                                  {post.author?.name}
                                 </h4>
                                 <p className="text-gray-300 text-sm">
                                   {post.user.role}
@@ -638,42 +794,39 @@ export default function CommunityPage() {
                             {/* Image Grid - supports 1-4 images with different layouts */}
                             {post.images && post.images.length > 0 && (
                               <div
-                                className={`mb-4 rounded-lg overflow-hidden ${
-                                  post.images.length === 1 ? "max-w-2xl" : ""
-                                }`}
+                                className={`mb-4 rounded-lg overflow-hidden ${post.images.length === 1 ? "max-w-2xl" : ""
+                                  }`}
                               >
                                 <div
-                                  className={`grid gap-2 ${
-                                    post.images.length === 1
-                                      ? "grid-cols-1"
-                                      : post.images.length === 2
+                                  className={`grid gap-2 ${post.images.length === 1
+                                    ? "grid-cols-1"
+                                    : post.images.length === 2
                                       ? "grid-cols-2"
                                       : post.images.length === 3
-                                      ? "grid-cols-2"
-                                      : "grid-cols-2"
-                                  }`}
+                                        ? "grid-cols-2"
+                                        : "grid-cols-2"
+                                    }`}
                                 >
                                   {post.images.map((image, idx) => (
                                     <div
                                       key={idx}
-                                      className={`relative aspect-square ${
-                                        post.images.length === 3 && idx === 0
-                                          ? "row-span-2"
-                                          : ""
-                                      }`}
+                                      className={`relative aspect-square ${post.images && post.images.length === 3 && idx === 0
+                                        ? "row-span-2"
+                                        : ""
+                                        }`}
                                     >
                                       <img
                                         src={image}
                                         alt={`Post by ${post.user.name}`}
                                         className="w-full h-full object-cover rounded-lg"
                                       />
-                                      {post.images.length > 4 && idx === 3 && (
+                                      {/* {post.images?.length > 4 && idx === 3 && (
                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
                                           <span className="text-white font-bold text-lg">
-                                            +{post.images.length - 4}
+                                            +{(post.images?.length ?? 0) - 4}
                                           </span>
                                         </div>
-                                      )}
+                                      )} */}
                                     </div>
                                   ))}
                                 </div>
@@ -682,11 +835,17 @@ export default function CommunityPage() {
 
                             <div className="flex items-center justify-between text-gray-400 text-sm">
                               <div className="flex space-x-4">
-                                <button className="flex items-center hover:text-blue-400">
+                                <button
+                                  className="flex items-center hover:text-blue-400"
+                                  onClick={() => handleToggleLike(post.id)}
+                                >
                                   <ThumbsUp className="h-4 w-4 mr-1" />
                                   {post.likes} Likes
                                 </button>
-                                <button className="flex items-center hover:text-blue-400">
+                                <button
+                                  className="flex items-center hover:text-blue-400"
+                                  onClick={() => fetchComments(post.id)}
+                                >
                                   <MessageCircle className="h-4 w-4 mr-1" />
                                   {post.comments} Comments
                                 </button>
@@ -695,72 +854,37 @@ export default function CommunityPage() {
                                 <Share2 className="h-4 w-4" />
                               </button>
                             </div>
+                            {/* Comments Section */}
+                            {commentsByPost[post.id] && (
+                              <div className="mt-4 space-y-2">
+                                {commentsByPost[post.id].map((c) => (
+                                  <div key={c.id} className="text-gray-200 text-sm border-b border-slate-600 pb-1">
+                                    <span className="font-semibold">{c.author.name}: </span>
+                                    {c.text}
+                                  </div>
+                                ))}
+                                <div className="flex mt-2 space-x-2">
+                                  <Input
+                                    value={newComment[post.id] || ""}
+                                    onChange={e => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                    placeholder="Write a comment..."
+                                    className="bg-slate-800 border-slate-700"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => addComment(post.id, 1)}
+                                    className="bg-gradient-to-r from-blue-500 to-purple-600"
+                                  >
+                                    post
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
 
-                      {/* Sample Post with Images */}
-                      <Card className="bg-slate-700/30 border-white/10">
-                        <CardContent className="p-4">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <Avatar>
-                              <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600">
-                                DK
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h4 className="text-white font-medium">
-                                David Kim
-                              </h4>
-                              <p className="text-gray-300 text-sm">
-                                Data Scientist
-                              </p>
-                            </div>
-                            <span className="text-gray-400 text-sm ml-auto">
-                              3 hours ago
-                            </span>
-                          </div>
 
-                          <p className="text-gray-300 mb-4">
-                            Check out these visualizations from our latest
-                            project! #datascience #machinelearning
-                          </p>
-
-                          {/* Image Grid Example */}
-                          <div className="grid grid-cols-2 gap-2 mb-4 rounded-lg overflow-hidden">
-                            <div className="aspect-square">
-                              <img
-                                src="https://source.unsplash.com/random/600x600/?datavisualization,1"
-                                alt="Data visualization"
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                            </div>
-                            <div className="aspect-square">
-                              <img
-                                src="https://source.unsplash.com/random/600x600/?datavisualization,2"
-                                alt="Data visualization"
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-gray-400 text-sm">
-                            <div className="flex space-x-4">
-                              <button className="flex items-center hover:text-blue-400">
-                                <ThumbsUp className="h-4 w-4 mr-1" />
-                                24 Likes
-                              </button>
-                              <button className="flex items-center hover:text-blue-400">
-                                <MessageCircle className="h-4 w-4 mr-1" />8
-                                Comments
-                              </button>
-                            </div>
-                            <button className="hover:text-blue-400">
-                              <Share2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </CardContent>
-                      </Card>
                     </div>
                   </CardContent>
                 </Card>
@@ -782,11 +906,10 @@ export default function CommunityPage() {
                       {Object.keys(messages).map((name) => (
                         <div
                           key={name}
-                          className={`p-3 rounded-lg cursor-pointer ${
-                            activeChat === name
-                              ? "bg-slate-700/50 border border-white/10"
-                              : "hover:bg-slate-700/30"
-                          }`}
+                          className={`p-3 rounded-lg cursor-pointer ${activeChat === name
+                            ? "bg-slate-700/50 border border-white/10"
+                            : "hover:bg-slate-700/30"
+                            }`}
                           onClick={() => setActiveChat(name)}
                         >
                           <div className="flex items-center space-x-3">
@@ -839,26 +962,23 @@ export default function CommunityPage() {
                           {messages[activeChat]?.map((msg, index) => (
                             <div
                               key={index}
-                              className={`flex ${
-                                msg.sender === "You"
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
+                              className={`flex ${msg.sender === "You"
+                                ? "justify-end"
+                                : "justify-start"
+                                }`}
                             >
                               <div
-                                className={`max-w-[80%] p-3 rounded-lg ${
-                                  msg.sender === "You"
-                                    ? "bg-gradient-to-r from-blue-500 to-purple-600"
-                                    : "bg-slate-700/50"
-                                }`}
+                                className={`max-w-[80%] p-3 rounded-lg ${msg.sender === "You"
+                                  ? "bg-gradient-to-r from-blue-500 to-purple-600"
+                                  : "bg-slate-700/50"
+                                  }`}
                               >
                                 <p className="text-white">{msg.text}</p>
                                 <p
-                                  className={`text-xs mt-1 ${
-                                    msg.sender === "You"
-                                      ? "text-blue-200"
-                                      : "text-gray-400"
-                                  }`}
+                                  className={`text-xs mt-1 ${msg.sender === "You"
+                                    ? "text-blue-200"
+                                    : "text-gray-400"
+                                    }`}
                                 >
                                   {msg.time}
                                 </p>
