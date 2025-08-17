@@ -10,11 +10,21 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "../../../../components/ui/select";
 import { Badge } from "../../../../components/ui/badge";
-import {  User as UserIcon, Briefcase, Target, Zap, Edit, Save, X } from "lucide-react";
-import { skillOptions, interestOptions }  from "@/app/utils/data";
+import {
+  User as UserIcon,
+  Briefcase,
+  Target,
+  Zap,
+  Edit,
+  Save,
+  X,
+} from "lucide-react";
+import { skillOptions, interestOptions } from "@/app/utils/data";
+import { retrieveUser } from "../../../../api/api";
+import { updateJobSeeker } from "../../../../api/api";
 
 type FormData = {
   name: string;
@@ -25,6 +35,7 @@ type FormData = {
   education: string;
   skills: string[];
   interests: string[];
+  expertiseArea: string[];
   careerGoals: string;
   targetRole: string;
   targetIndustry: string;
@@ -33,30 +44,64 @@ type FormData = {
 
 const userProfilePage = () => {
   const [formData, setFormData] = useState<FormData>({
-    name: "Alex Thompson",
-    email: "alex.tho@example.com",
-    location: "San Francisco, CA",
-    currentRole: "Frontend Developer",
-    experience: "4-6",
-    education: "bachelors",
-    skills: ["JavaScript", "React", "Node.js"],
-    interests: ["Technology", "Startups"],
-    careerGoals: "Become a senior developer and eventually a tech lead",
-    targetRole: "Senior Frontend Developer",
-    targetIndustry: "technology",
-    salaryExpectation: "100-150k"
+    name: "",
+    email: "",
+    location: "",
+    currentRole: "",
+    experience: "",
+    education: "",
+    skills: [],
+    interests: [],
+    expertiseArea: [],
+    careerGoals: "",
+    targetRole: "",
+    targetIndustry: "",
+    salaryExpectation: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<FormData>({ ...formData });
 
-  //To do
-  // useEffect(() => {
-  //   fetchUserData().then(data => {
-  //   setFormData(data);
-  //   setEditData(data);
-  //   });
-  // }, []);
+  useEffect(() => {
+    retrieveUser(7)
+      .then((res) => {
+        const user = res.data;
+        const profile = user.jobSeekerProfile || user.coachProfile || {};
+
+        setFormData({
+          name: user.name || "",
+          email: user.email || "",
+          location: profile.location || "",
+          currentRole: profile.currentRole || "",
+          experience: profile.experience || "",
+          education: profile.education || "",
+          skills: profile.skills || [],
+          interests: profile.interests || [],
+          expertiseArea: profile.expertiseArea || [],
+          careerGoals: profile.careerGoals || "",
+          targetRole: profile.targetRole || "",
+          targetIndustry: profile.targetIndustry || "",
+          salaryExpectation: profile.salaryExpectation || "",
+        });
+
+        setEditData({
+          name: user.name || "",
+          email: user.email || "",
+          location: profile.location || "",
+          currentRole: profile.currentRole || "",
+          experience: profile.experience || "",
+          education: profile.education || "",
+          skills: profile.skills || [],
+          interests: profile.interests || [],
+          expertiseArea: profile.expertiseArea || [],
+          careerGoals: profile.careerGoals || "",
+          targetRole: profile.targetRole || "",
+          targetIndustry: profile.targetIndustry || "",
+          salaryExpectation: profile.salaryExpectation || "",
+        });
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -67,39 +112,75 @@ const userProfilePage = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleSave = () => {
-    setFormData({ ...editData });
-    setIsEditing(false);  
-    // saveUserData(editData).then(() => {
-    //   setFormData(editData);
-    //   setIsEditing(false);
-    // });
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setEditData(prev => ({ ...prev, [id]: value }));
+    setEditData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const userId = 7; // Replace with actual user ID
+
+      const expertiseArray =
+      typeof editData.expertiseArea === "string"
+        ? (editData.expertiseArea as string)
+            .split(",")           
+            .map((s) => s.trim())  
+            .filter((s) => s)     
+        : editData.expertiseArea;  
+
+     
+      const updateData = {
+        name: editData.name,
+        email: editData.email,
+        location: editData.location,
+        currentRole: editData.currentRole,
+        experience: editData.experience,
+        education: editData.education,
+        skills: editData.skills,
+        interests: editData.interests,
+        expertiseArea: expertiseArray,
+        careerGoals: editData.careerGoals,
+        targetRole: editData.targetRole,
+        targetIndustry: editData.targetIndustry,
+        salaryExpectation: editData.salaryExpectation,
+      };
+
+      const res = await updateJobSeeker(userId, updateData);
+
+      
+      const updatedProfile = res.data.jobSeekerProfile || {};
+      setFormData({
+        ...editData,
+        ...updatedProfile,
+      });
+
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Update failed:", err);
+    } finally {
+    }
   };
 
   const handleSelectChange = (field: keyof FormData, value: string) => {
-    setEditData(prev => ({ ...prev, [field]: value }));
+    setEditData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSkillToggle = (skill: string) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
       skills: prev.skills.includes(skill)
-        ? prev.skills.filter(s => s !== skill)
-        : [...prev.skills, skill]
+        ? prev.skills.filter((s) => s !== skill)
+        : [...prev.skills, skill],
     }));
   };
 
   const handleInterestToggle = (interest: string) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
       interests: prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
+        ? prev.interests.filter((i) => i !== interest)
+        : [...prev.interests, interest],
     }));
   };
 
@@ -110,9 +191,15 @@ const userProfilePage = () => {
     </div>
   );
 
-  const renderEditableField = (label: string, id: keyof FormData, type = "text") => (
+  const renderEditableField = (
+    label: string,
+    id: keyof FormData,
+    type = "text"
+  ) => (
     <div className="mb-4">
-      <Label htmlFor={id} className="text-white">{label}</Label>
+      <Label htmlFor={id} className="text-white">
+        {label}
+      </Label>
       <Input
         id={id}
         value={editData[id] as string}
@@ -123,7 +210,11 @@ const userProfilePage = () => {
     </div>
   );
 
-  const renderSelectField = (label: string, field: keyof FormData, options: string[]) => (
+  const renderSelectField = (
+    label: string,
+    field: keyof FormData,
+    options: string[]
+  ) => (
     <div className="mb-4">
       <Label className="text-white">{label}</Label>
       <Select
@@ -134,8 +225,12 @@ const userProfilePage = () => {
           <SelectValue placeholder="Select an option" />
         </SelectTrigger>
         <SelectContent className="bg-slate-800 border-slate-700">
-          {options.map(option => (
-            <SelectItem key={option} value={option} className="hover:bg-slate-700">
+          {options.map((option) => (
+            <SelectItem
+              key={option}
+              value={option}
+              className="hover:bg-slate-700"
+            >
               {option.charAt(0).toUpperCase() + option.slice(1)}
             </SelectItem>
           ))}
@@ -144,32 +239,43 @@ const userProfilePage = () => {
     </div>
   );
 
-  const renderBadges = (items: string[]) => (
-    <div className="flex flex-wrap gap-2 mt-1">
-      {items.length > 0 ? (
-        items.map(item => (
-          <Badge key={item} variant="default" className="bg-blue-500/20 text-blue-300">
-            {item}
-          </Badge>
-        ))
-      ) : (
-        <span className="text-gray-400">Not specified</span>
-      )}
-    </div>
-  );
+  const renderBadges = (items?: string[]) => {
+    const safeItems = items || [];
+    return (
+      <div className="flex flex-wrap gap-2 mt-1">
+        {safeItems.length > 0 ? (
+          safeItems.map((item) => (
+            <Badge
+              key={item}
+              variant="default"
+              className="bg-blue-500/20 text-blue-300"
+            >
+              {item}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-gray-400">Not specified</span>
+        )}
+      </div>
+    );
+  };
 
-  const renderEditableBadges = (items: string[], options: string[], toggleFn: (item: string) => void) => (
+  const renderEditableBadges = (
+    items: string[] = [],
+    options: string[],
+    toggleFn: (item: string) => void
+  ) => (
     <div className="flex flex-wrap gap-2 mt-1">
-      {options.map(option => (
+      {options.map((option) => (
         <Badge
           key={option}
           onClick={() => toggleFn(option)}
           className={`cursor-pointer select-none ${
-            items.includes(option)
+            (items || []).includes(option)
               ? "bg-blue-500 text-white"
               : "bg-slate-700 text-gray-200"
           }`}
-          variant={items.includes(option) ? "default" : "outline"}
+          variant={(items || []).includes(option) ? "default" : "outline"}
         >
           {option}
         </Badge>
@@ -190,7 +296,11 @@ const userProfilePage = () => {
           <Button
             onClick={isEditing ? handleSave : handleEditToggle}
             variant={isEditing ? "default" : "outline"}
-            className={isEditing ? "bg-green-600 hover:bg-green-700" : "border-white/20 text-gray-300 hover:bg-white/10"}
+            className={
+              isEditing
+                ? "bg-green-600 hover:bg-green-700"
+                : "border-white/20 text-gray-300 hover:bg-white/10"
+            }
           >
             {isEditing ? (
               <>
@@ -211,7 +321,9 @@ const userProfilePage = () => {
                 <UserIcon className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">{formData.name}</h1>
+                <h1 className="text-2xl font-bold text-white">
+                  {formData.name}
+                </h1>
                 <p className="text-gray-300">{formData.currentRole}</p>
               </div>
             </div>
@@ -219,7 +331,8 @@ const userProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                  <UserIcon className="h-5 w-5 mr-2 text-blue-400" /> Personal Information
+                  <UserIcon className="h-5 w-5 mr-2 text-blue-400" /> Personal
+                  Information
                 </h2>
                 {isEditing ? (
                   <>
@@ -240,12 +353,26 @@ const userProfilePage = () => {
 
               <div>
                 <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                  <Briefcase className="h-5 w-5 mr-2 text-purple-400" /> Professional Background
+                  <Briefcase className="h-5 w-5 mr-2 text-purple-400" />{" "}
+                  Professional Background
                 </h2>
                 {isEditing ? (
                   <>
-                    {renderSelectField("Years of Experience", "experience", ["0-1", "2-3", "4-6", "7-10", "10+"])}
-                    {renderSelectField("Highest Education", "education", ["high-school", "associates", "bachelors", "masters", "phd", "bootcamp"])}
+                    {renderSelectField("Years of Experience", "experience", [
+                      "0-1",
+                      "2-3",
+                      "4-6",
+                      "7-10",
+                      "10+",
+                    ])}
+                    {renderSelectField("Highest Education", "education", [
+                      "high-school",
+                      "associates",
+                      "bachelors",
+                      "masters",
+                      "phd",
+                      "bootcamp",
+                    ])}
                   </>
                 ) : (
                   <>
@@ -257,38 +384,69 @@ const userProfilePage = () => {
 
               <div>
                 <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                  <Zap className="h-5 w-5 mr-2 text-green-400" /> Skills & Interests
+                  <Zap className="h-5 w-5 mr-2 text-green-400" /> Skills &
+                  Interests
                 </h2>
-                <Label className="text-white mb-2">Skills</Label>
+                <Label className="text-gray-400 mb-2">Skills</Label>
+                {isEditing
+                  ? renderEditableBadges(
+                      editData.skills,
+                      skillOptions,
+                      handleSkillToggle
+                    )
+                  : renderBadges(formData.skills)}
+                <Label className="text-gray-400 mt-4 mb-2">Interests</Label>
+                {isEditing
+                  ? renderEditableBadges(
+                      editData.interests,
+                      interestOptions,
+                      handleInterestToggle
+                    )
+                  : renderBadges(formData.interests)}
+                <Label className="text-gray mt-4 mb-2"></Label>
                 {isEditing ? (
-                  renderEditableBadges(editData.skills, skillOptions, handleSkillToggle)
+                  <>{renderEditableField("Expertise Areas", "expertiseArea")}</>
                 ) : (
-                  renderBadges(formData.skills)
-                )}
-                <Label className="text-white mt-4 mb-2">Interests</Label>
-                {isEditing ? (
-                  renderEditableBadges(editData.interests, interestOptions, handleInterestToggle)
-                ) : (
-                  renderBadges(formData.interests)
+                  <>
+                    {renderField(
+                      "Expertise Areas",
+                      formData.expertiseArea.join(", ")
+                    )}
+                  </>
                 )}
               </div>
 
               <div>
                 <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                  <Target className="h-5 w-5 mr-2 text-orange-400" /> Career Goals
+                  <Target className="h-5 w-5 mr-2 text-orange-400" /> Career
+                  Goals
                 </h2>
                 {isEditing ? (
                   <>
                     {renderEditableField("Target Role", "targetRole")}
-                    {renderSelectField("Target Industry", "targetIndustry", ["technology", "healthcare", "finance", "education", "ecommerce", "media"])}
-                    {renderSelectField("Salary Expectation", "salaryExpectation", ["30-50k", "50-75k", "75-100k", "100-150k", "150k+"])}
+                    {renderSelectField("Target Industry", "targetIndustry", [
+                      "technology",
+                      "healthcare",
+                      "finance",
+                      "education",
+                      "ecommerce",
+                      "media",
+                    ])}
+                    {renderSelectField(
+                      "Salary Expectation",
+                      "salaryExpectation",
+                      ["30-50k", "50-75k", "75-100k", "100-150k", "150k+"]
+                    )}
                     {renderEditableField("Career Goals", "careerGoals")}
                   </>
                 ) : (
                   <>
                     {renderField("Target Role", formData.targetRole)}
                     {renderField("Target Industry", formData.targetIndustry)}
-                    {renderField("Salary Expectation", formData.salaryExpectation)}
+                    {renderField(
+                      "Salary Expectation",
+                      formData.salaryExpectation
+                    )}
                     {renderField("Career Goals", formData.careerGoals)}
                   </>
                 )}
@@ -297,10 +455,17 @@ const userProfilePage = () => {
 
             {isEditing && (
               <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-white/10">
-                <Button variant="outline" onClick={handleEditToggle} className="border-white/20 text-gray-300 hover:bg-white/10">
+                <Button
+                  variant="outline"
+                  onClick={handleEditToggle}
+                  className="border-white/20 text-gray-300 hover:bg-white/10"
+                >
                   <X className="mr-2 h-4 w-4" /> Cancel
                 </Button>
-                <Button onClick={handleSave} className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+                <Button
+                  onClick={handleSave}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                >
                   <Save className="mr-2 h-4 w-4" /> Save Changes
                 </Button>
               </div>
