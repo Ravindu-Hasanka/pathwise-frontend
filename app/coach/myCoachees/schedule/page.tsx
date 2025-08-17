@@ -1,7 +1,7 @@
 'use client';
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import {Suspense, useState} from "react";
 
 const scheduleData = [
     {
@@ -127,7 +127,7 @@ const timeSlots = [
     "5:00 PM", "5:30 PM", "6:00 PM"
 ];
 
-export default function Schedule() {
+function ScheduleContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const coacheeId = searchParams.get('coacheeId');
@@ -568,5 +568,13 @@ export default function Schedule() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function Schedule() {
+    return (
+        <Suspense fallback={<div className="text-white p-6">Loading schedule...</div>}>
+            <ScheduleContent />
+        </Suspense>
     );
 }
