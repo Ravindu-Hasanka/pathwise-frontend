@@ -23,7 +23,7 @@ import { Search } from "lucide-react";
 import React from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/ui/navbar";
-import {coachDetails} from "@/app/user/explore/coachDetails";
+import {coachDetails} from "../explore/coachDetails";
 
 export default function ExplorePage() {
   const [selectedSortByOption, setSelectedSortByOption] =
