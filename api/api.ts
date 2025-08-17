@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:8080/api";  
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
 
 export const createJobSeeker = (data: any) => {
   return axios.post(`${API_BASE}/onboarding/jobseeker`, data);
