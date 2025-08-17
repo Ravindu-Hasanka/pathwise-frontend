@@ -40,7 +40,7 @@ export default function ExplorePage() {
   const router = useRouter();
 
   const handleCoachClick = (id: number) => {
-    router.push(`/user/explore/coach-details/${id}`);
+    router.push(`/job-seeker/explore/coach-details/${id}`);
   };
 
   const sortedCoaches = [...coachDetails].sort((a, b) => {
