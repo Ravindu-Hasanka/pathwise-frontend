@@ -204,6 +204,19 @@ export const interviewCovers = [
   "/yahoo.png",
 ];
 
+export interface Interview {
+  id: string;
+  userId: string;
+  role: string;
+  type: string; // e.g., "Technical", "Mixed", etc.
+  techstack: string[];
+  level: "Junior" | "Mid" | "Senior" | "Lead"; // or just string if you want it open
+  questions: string[];
+  finalized: boolean;
+  createdAt: string; // ISO date string
+}
+
+
 export const dummyInterviews: Interview[] = [
   {
     id: "1",
