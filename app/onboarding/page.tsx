@@ -31,6 +31,7 @@ import {
   UserCheck,
   BookOpen,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 
 type InputWithLabelProps = {
@@ -41,8 +42,8 @@ type InputWithLabelProps = {
   type?: string;
   error?: string;
   onBlur?: () => void;
+  description?: string;
 };
-
 const InputWithLabel: React.FC<InputWithLabelProps> = ({
   id,
   label,
@@ -51,6 +52,7 @@ const InputWithLabel: React.FC<InputWithLabelProps> = ({
   type = "text",
   error,
   onBlur,
+  description,
 }) => (
   <div>
     <Label htmlFor={id} className="text-white">
@@ -64,6 +66,7 @@ const InputWithLabel: React.FC<InputWithLabelProps> = ({
       className={`mt-1 ${error ? "border-red-500" : ""}`}
       onBlur={onBlur}
     />
+    {description && <p className="mt-1 text-xs text-gray-400">{description}</p>}
     {error && (
       <p className="mt-1 text-sm text-red-500 flex items-center">
         <AlertCircle className="h-4 w-4 mr-1" />
@@ -90,7 +93,10 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 }) => (
   <div>
     <Select value={value} onValueChange={setValue}>
-      <SelectTrigger className={`mt-1 ${error ? "border-red-500" : ""}`} onBlur={onBlur}>
+      <SelectTrigger
+        className={`mt-1 ${error ? "border-red-500" : ""}`}
+        onBlur={onBlur}
+      >
         <SelectValue placeholder="Select an option" />
       </SelectTrigger>
       <SelectContent>
@@ -168,46 +174,58 @@ const Onboarding = () => {
     role: "JOB_SEEKER" | "COACH" | "";
     name: string;
     email: string;
-    location: string;
-    currentRole: string;
-    experience: string;
-    education: string;
-    skills: string[];
-    interests: string[];
-    careerGoals: string;
-    targetRole: string;
-    targetIndustry: string;
-    salaryExpectation: string;
-    expertiseArea?: string[];
-    yearsOfExperience?: string;
-    preferredIndustries?: string[];
-    hourlyRate?: string;
+    address: string;
+    phone: string;
+    password: string;
+    confirmPassword?: string;
+    currentPosition: string;
+    skills:  Array<{
+       name : string;
+    }>;
+    //targetRole: string;
+    currentIndustry: string;//industries
+    //salaryExpectation: string;
+    //expertiseArea?: string[];
+    //hourlyRate?: string;
     description?: string;
+    experiences?: Array<{
+      job_role: string;
+      company: string;
+      started_at: string;
+      ended_at: string;
+    }>;
+    educations?: Array<{
+      institution: string;
+      degree: string;
+      startDate: string;
+      endDate: string;
+    }>;
   };
 
   const [formData, setFormData] = useState<FormData>({
     role: "",
     name: "",
     email: "",
-    location: "",
-    currentRole: "",
-    experience: "",
-    education: "",
-    skills: [],
-    interests: [],
-    careerGoals: "",
-    targetRole: "",
-    targetIndustry: "",
-    salaryExpectation: "",
-    expertiseArea: [],
-    yearsOfExperience: "",
-    preferredIndustries: [],
-    hourlyRate: "",
+    address: "",
+    phone: "",
+    //currentRole: "",
+    password: "",
+    confirmPassword: "",
+    skills: [{ name: "" }],
+    currentPosition: "",
+    currentIndustry: "",
+    //salaryExpectation: "",
+    //expertiseArea: [],
+    //hourlyRate: "",
     description: "",
+    experiences: [{ job_role: "", company: "", started_at: "", ended_at: "" }],
+    educations: [
+      { institution: "", degree: "", startDate: "", endDate: "" },
+    ],
   });
 
   const router = useRouter();
-  const totalSteps = 4;
+  const totalSteps = 5;
   const progress = (step / totalSteps) * 100;
 
   const skillOptions = [
@@ -272,184 +290,271 @@ const Onboarding = () => {
   ];
 
   // Validation rules
-  const validateField = (name: string, value: any): string => {
-    switch (name) {
-      case "role":
-        return !value ? "Please select a role" : "";
-      case "name":
-        return !value ? "Name is required" : value.length < 2 ? "Name is too short" : "";
-      case "email":
-        return !value 
-          ? "Email is required" 
-          : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) 
-            ? "Invalid email format" 
-            : "";
-      case "location":
-        return !value ? "Location is required" : "";
-      case "currentRole":
-        return formData.role === "JOB_SEEKER" && !value ? "Current role is required" : "";
-      case "experience":
-        return formData.role === "JOB_SEEKER" && !value ? "Experience level is required" : "";
-      case "education":
-        return formData.role === "JOB_SEEKER" && !value ? "Education level is required" : "";
-      case "yearsOfExperience":
-        return formData.role === "COACH" && !value ? "Years of experience is required" : "";
-      case "hourlyRate":
-        return formData.role === "COACH" && !value ? "Hourly rate is required" : "";
-      case "skills":
-        return formData.role === "JOB_SEEKER" && value.length < 3 
-          ? "Please select at least 3 skills" 
-          : "";
-      case "interests":
-        return formData.role === "JOB_SEEKER" && value.length < 1 
-          ? "Please select at least 1 interest" 
-          : "";
-      case "preferredIndustries":
-        return formData.role === "COACH" && (value?.length ?? 0) < 1 
-          ? "Please select at least 1 industry" 
-          : "";
-      case "expertiseArea":
-        return (value?.length ?? 0) < 1 
-          ? "Please add at least 1 expertise area" 
-          : "";
-      case "targetRole":
-        return formData.role === "JOB_SEEKER" && !value ? "Target role is required" : "";
-      case "salaryExpectation":
-        return formData.role === "JOB_SEEKER" && !value ? "Salary expectation is required" : "";
-      case "description":
-        return formData.role === "COACH" && (!value || value.length < 50) 
-          ? "Description must be at least 50 characters" 
-          : "";
-      default:
-        return "";
-    }
-  };
+  // const validateField = (name: string, value: any): string => {
+  //   switch (name) {
+  //     case "role":
+  //       return !value ? "Please select a role" : "";
+  //     case "name":
+  //       return !value
+  //         ? "Name is required"
+  //         : value.length < 2
+  //         ? "Name is too short"
+  //         : "";
+  //     case "email":
+  //       return !value
+  //         ? "Email is required"
+  //         : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  //         ? "Invalid email format"
+  //         : "";
+  //     case "address":
+  //       return !value ? "Address is required" : "";
+  //     case "phone":
+  //       return !value
+  //         ? "Phone number is required"
+  //         : !/^\d{10}$/.test(value)
+  //         ? "Invalid phone number format"
+  //         : "";
+  //     case "password":
+  //       if (!value) return "Password is required";
+  //       if (value.length < 8) return "Password must be at least 8 characters";
+  //       if (!/[A-Z]/.test(value))
+  //         return "Password must contain at least one uppercase letter";
+  //       if (!/[a-z]/.test(value))
+  //         return "Password must contain at least one lowercase letter";
+  //       if (!/[0-9]/.test(value))
+  //         return "Password must contain at least one number";
+  //       if (!/[^A-Za-z0-9]/.test(value))
+  //         return "Password must contain at least one special character";
+  //       return "";
+  //     case "confirmPassword":
+  //       if (!value) return "Please confirm your password";
+  //       if (value !== formData.password) return "Passwords do not match";
+  //       return "";
+  //     case "currentRole":
+  //       return formData.role === "JOB_SEEKER" && !value
+  //         ? "Current role is required"
+  //         : "";
+  //     case "experience":
+  //       return formData.role === "JOB_SEEKER" && !value
+  //         ? "Experience level is required"
+  //         : "";
+  //     case "education":
+  //       return formData.role === "JOB_SEEKER" && !value
+  //         ? "Education level is required"
+  //         : "";
+  //     case "yearsOfExperience":
+  //       return formData.role === "COACH" && !value
+  //         ? "Years of experience is required"
+  //         : "";
+  //     case "hourlyRate":
+  //       return formData.role === "COACH" && !value
+  //         ? "Hourly rate is required"
+  //         : "";
+  //     case "skills":
+  //       return formData.role === "JOB_SEEKER" && value.length < 3
+  //         ? "Please select at least 3 skills"
+  //         : "";
+  //     case "interests":
+  //       return formData.role === "JOB_SEEKER" && value.length < 1
+  //         ? "Please select at least 1 interest"
+  //         : "";
+  //     case "preferredIndustries":
+  //       return formData.role === "COACH" && (value?.length ?? 0) < 1
+  //         ? "Please select at least 1 industry"
+  //         : "";
+  //     case "expertiseArea":
+  //       return (value?.length ?? 0) < 1
+  //         ? "Please add at least 1 expertise area"
+  //         : "";
+  //     case "targetRole":
+  //       return formData.role === "JOB_SEEKER" && !value
+  //         ? "Target role is required"
+  //         : "";
+  //     case "salaryExpectation":
+  //       return formData.role === "JOB_SEEKER" && !value
+  //         ? "Salary expectation is required"
+  //         : "";
+  //     case "description":
+  //       return formData.role === "COACH" && (!value || value.length < 50)
+  //         ? "Description must be at least 50 characters"
+  //         : "";
+  //     case "experienceGroups":
+  //       if (!value || value.length === 0)
+  //         return "Please add at least one experience";
+  //       for (const group of value) {
+  //         if (!group.role) return "Job role is required for all experiences";
+  //         if (!group.company) return "Company is required for all experiences";
+  //         if (!group.startDate)
+  //           return "Start date is required for all experiences";
+  //       }
+  //       return "";
+  //     case "educationGroups":
+  //       if (!value || value.length === 0)
+  //         return "Please add at least one education";
+  //       for (const group of value) {
+  //         if (!group.institution)
+  //           return "Institution is required for all education entries";
+  //         if (!group.degree)
+  //           return "Degree name is required for all education entries";
+  //         if (!group.startDate)
+  //           return "Start date is required for all education entries";
+  //       }
+  //       return "";
+  //     default:
+  //       return "";
+  //   }
+  // };
 
   // Validate all fields for current step
-  const validateStep = (step: number): boolean => {
-    const newErrors: Record<string, string> = {};
-    
-    if (step === 1) {
-      newErrors.role = validateField("role", formData.role);
-      newErrors.name = validateField("name", formData.name);
-      newErrors.email = validateField("email", formData.email);
-      newErrors.location = validateField("location", formData.location);
-      if (formData.role === "JOB_SEEKER") {
-        newErrors.currentRole = validateField("currentRole", formData.currentRole);
-      }
-    } else if (step === 2) {
-      if (formData.role === "JOB_SEEKER") {
-        newErrors.experience = validateField("experience", formData.experience);
-        newErrors.education = validateField("education", formData.education);
-      } else if (formData.role === "COACH") {
-        newErrors.yearsOfExperience = validateField("yearsOfExperience", formData.yearsOfExperience);
-        newErrors.hourlyRate = validateField("hourlyRate", formData.hourlyRate);
-      }
-    } else if (step === 3) {
-      if (formData.role === "JOB_SEEKER") {
-        newErrors.skills = validateField("skills", formData.skills);
-        newErrors.interests = validateField("interests", formData.interests);
-      } else if (formData.role === "COACH") {
-        newErrors.preferredIndustries = validateField("preferredIndustries", formData.preferredIndustries);
-        newErrors.expertiseArea = validateField("expertiseArea", formData.expertiseArea);
-      }
-    } else if (step === 4) {
-      if (formData.role === "JOB_SEEKER") {
-        newErrors.targetRole = validateField("targetRole", formData.targetRole);
-        newErrors.salaryExpectation = validateField("salaryExpectation", formData.salaryExpectation);
-      } else if (formData.role === "COACH") {
-        newErrors.description = validateField("description", formData.description);
-      }
-    }
-    
-    setErrors(newErrors);
-    return Object.values(newErrors).every(error => !error);
-  };
+  // const validateStep = (step: number): boolean => {
+  //   const newErrors: Record<string, string> = {};
 
-  const handleBlur = (field: string) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    setErrors(prev => ({
-      ...prev,
-      [field]: validateField(field, formData[field as keyof FormData])
-    }));
-  };
+  //   if (step === 1) {
+  //     newErrors.role = validateField("role", formData.role);
+  //     newErrors.name = validateField("name", formData.name);
+  //     newErrors.email = validateField("email", formData.email);
+  //     newErrors.address = validateField("address", formData.address);
+  //     newErrors.phone = validateField("phone", formData.phone);
+  //     if (formData.role === "JOB_SEEKER") {
+  //       newErrors.currentRole = validateField(
+  //         "currentPosition",
+  //         formData.currentPosition
+  //       );
+  //     }
+  //   } else if (step === 2) {
+  //     newErrors.password = validateField("password", formData.password);
+  //     newErrors.confirmPassword = validateField(
+  //       "confirmPassword",
+  //       formData.confirmPassword
+  //     );
+  //   } else if (step === 3) {
+  //     if (formData.role === "JOB_SEEKER") {
+  //       newErrors.experience = validateField("experience", formData.experience);
+  //       newErrors.education = validateField("education", formData.education);
+  //     // } else if (formData.role === "COACH") {
+  //     //   newErrors.yearsOfExperience = validateField(
+  //     //     "yearsOfExperience",
+  //     //     formData.yearsOfExperience
+  //     //   );
+  //     //   newErrors.hourlyRate = validateField("hourlyRate", formData.hourlyRate);
+  //      }
+  //   } else if (step === 4) {
+  //     if (formData.role === "JOB_SEEKER") {
+  //       newErrors.skills = validateField("skills", formData.skills);
+  //       //newErrors.interests = validateField("interests", formData.interests);
+  //     // } else if (formData.role === "COACH") {
+  //     //   newErrors.preferredIndustries = validateField(
+  //     //     "preferredIndustries",
+  //     //     formData.preferredIndustries
+  //     //   );
+  //     //   newErrors.expertiseArea = validateField(
+  //     //     "expertiseArea",
+  //     //     formData.expertiseArea
+  //     //   );
+  //     // }
+  //   } else if (step === 5) {
+  //     if (formData.role === "JOB_SEEKER") {
+  //       newErrors.targetRole = validateField("targetRole", formData.targetRole);
+  //       newErrors.salaryExpectation = validateField(
+  //         "salaryExpectation",
+  //         formData.salaryExpectation
+  //       );
+  //     } else if (formData.role === "COACH") {
+  //       newErrors.description = validateField(
+  //         "description",
+  //         formData.description
+  //       );
+  //     }
+  //   }
 
-  const handleSkillToggle = (skill: string) => {
-    const newSkills = formData.skills.includes(skill)
-      ? formData.skills.filter((s) => s !== skill)
-      : [...formData.skills, skill];
-    
-    setFormData(prev => ({ ...prev, skills: newSkills }));
-    setErrors(prev => ({
-      ...prev,
-      skills: validateField("skills", newSkills)
-    }));
-  };
+  //   setErrors(newErrors);
+  //   return Object.values(newErrors).every((error) => !error);
+  // };
 
-  const handleInterestToggle = (interest: string) => {
-    const newInterests = formData.interests.includes(interest)
-      ? formData.interests.filter((i) => i !== interest)
-      : [...formData.interests, interest];
-    
-    setFormData(prev => ({ ...prev, interests: newInterests }));
-    setErrors(prev => ({
-      ...prev,
-      interests: validateField("interests", newInterests)
-    }));
-  };
+  // const handleBlur = (field: string) => {
+  //   setTouched((prev) => ({ ...prev, [field]: true }));
+  //   setErrors((prev) => ({
+  //     ...prev,
+  //     [field]: validateField(field, formData[field as keyof FormData]),
+  //   }));
+  // };
 
-  const handleIndustryToggle = (industry: string) => {
-    const newIndustries = (formData.preferredIndustries ?? []).includes(industry)
-      ? (formData.preferredIndustries ?? []).filter((i) => i !== industry)
-      : [...(formData.preferredIndustries ?? []), industry];
-    
-    setFormData(prev => ({ ...prev, preferredIndustries: newIndustries }));
-    setErrors(prev => ({
-      ...prev,
-      preferredIndustries: validateField("preferredIndustries", newIndustries)
-    }));
-  };
+  const handleSkillToggle = (skillName: string) => {
+  const isSelected = formData.skills.some(skill => skill.name === skillName);
+  
+  const newSkills = isSelected
+    ? formData.skills.filter(skill => skill.name !== skillName)
+    : [...formData.skills, { name: skillName }];
+
+  setFormData((prev) => ({ ...prev, skills: newSkills }));
+};
+
+  // const handleInterestToggle = (interest: string) => {
+  //   const newInterests = formData.interests.includes(interest)
+  //     ? formData.interests.filter((i) => i !== interest)
+  //     : [...formData.interests, interest];
+
+  //   setFormData((prev) => ({ ...prev, interests: newInterests }));
+  //   setErrors((prev) => ({
+  //     ...prev,
+  //     interests: validateField("interests", newInterests),
+  //   }));
+  // };
+
+  // const handleIndustryToggle = (industry: string) => {
+  //   const newIndustries = (formData.preferredIndustries ?? []).includes(
+  //     industry
+  //   )
+  //     ? (formData.preferredIndustries ?? []).filter((i) => i !== industry)
+  //     : [...(formData.preferredIndustries ?? []), industry];
+
+  //   setFormData((prev) => ({ ...prev, preferredIndustries: newIndustries }));
+  //   setErrors((prev) => ({
+  //     ...prev,
+  //     preferredIndustries: validateField("preferredIndustries", newIndustries),
+  //   }));
+  // };
 
   const handleNext = async () => {
-     
-    const newTouched: Record<string, boolean> = {};
-    if (step === 1) {
-      newTouched.role = true;
-      newTouched.name = true;
-      newTouched.email = true;
-      newTouched.location = true;
-      if (formData.role === "JOB_SEEKER") newTouched.currentRole = true;
-    } else if (step === 2) {
-      if (formData.role === "JOB_SEEKER") {
-        newTouched.experience = true;
-        newTouched.education = true;
-      } else if (formData.role === "COACH") {
-        newTouched.yearsOfExperience = true;
-        newTouched.hourlyRate = true;
-      }
-    } else if (step === 3) {
-      if (formData.role === "JOB_SEEKER") {
-        newTouched.skills = true;
-        newTouched.interests = true;
-        newTouched.expertiseArea = true;
-      } else if (formData.role === "COACH") {
-        newTouched.preferredIndustries = true;
-        newTouched.expertiseArea = true;
-      }
-    } else if (step === 4) {
-      if (formData.role === "JOB_SEEKER") {
-        newTouched.targetRole = true;
-        newTouched.salaryExpectation = true;
-      } else if (formData.role === "COACH") {
-        newTouched.description = true;
-      }
-    }
-    setTouched(prev => ({ ...prev, ...newTouched }));
+    // const newTouched: Record<string, boolean> = {};
+    // if (step === 1) {
+    //   newTouched.role = true;
+    //   newTouched.name = true;
+    //   newTouched.email = true;
+    //   newTouched.phone = true;
+    //   newTouched.address = true;
+    //   if (formData.role === "JOB_SEEKER") newTouched.currentRole = true;
+    // } else if (step === 2) {
+    //   if (formData.role === "JOB_SEEKER") {
+    //     newTouched.experience = true;
+    //     newTouched.education = true;
+    //   } else if (formData.role === "COACH") {
+    //     newTouched.yearsOfExperience = true;
+    //     newTouched.hourlyRate = true;
+    //   }
+    // } else if (step === 3) {
+    //   if (formData.role === "JOB_SEEKER") {
+    //     newTouched.skills = true;
+    //     newTouched.interests = true;
+    //     newTouched.expertiseArea = true;
+    //   } else if (formData.role === "COACH") {
+    //     newTouched.preferredIndustries = true;
+    //     newTouched.expertiseArea = true;
+    //   }
+    // } else if (step === 4) {
+    //   if (formData.role === "JOB_SEEKER") {
+    //     newTouched.targetRole = true;
+    //     newTouched.salaryExpectation = true;
+    //   } else if (formData.role === "COACH") {
+    //     newTouched.description = true;
+    //   }
+    // }
+    // setTouched((prev) => ({ ...prev, ...newTouched }));
 
-    // Validate current step
-    if (!validateStep(step)) {
-      return;
-    }
+    // // Validate current step
+    // if (!validateStep(step)) {
+    //   return;
+    // }
 
     if (step < totalSteps) {
       setStep(step + 1);
@@ -502,15 +607,15 @@ const Onboarding = () => {
                     ...formData,
                     role: role as "JOB_SEEKER" | "COACH",
                   });
-                  setErrors(prev => ({
-                    ...prev,
-                    role: validateField("role", role)
-                  }));
+                  // setErrors((prev) => ({
+                  //   ...prev,
+                  //   role: validateField("role", role),
+                  // }));
                 }}
               >
                 <SelectTrigger
                   className={`mt-1 ${errors.role ? "border-red-500" : ""}`}
-                  onBlur={() => handleBlur("role")}
+                  //onBlur={() => handleBlur("role")}
                 >
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
@@ -535,7 +640,7 @@ const Onboarding = () => {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 error={errors.name}
-                onBlur={() => handleBlur("name")}
+                //onBlur={() => handleBlur("name")}
               />
               <InputWithLabel
                 id="email"
@@ -546,35 +651,132 @@ const Onboarding = () => {
                 }
                 type="email"
                 error={errors.email}
-                onBlur={() => handleBlur("email")}
+                //onBlur={() => handleBlur("email")}
               />
               <InputWithLabel
-                id="location"
-                label="Location"
-                value={formData.location}
+                id="address"
+                label="Address"
+                value={formData.address}
                 onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
+                  setFormData({ ...formData, address: e.target.value })
                 }
-                error={errors.location}
-                onBlur={() => handleBlur("location")}
+                error={errors.address}
+                //onBlur={() => handleBlur("address")}
+              />
+              <InputWithLabel
+                id="phone"
+                label="Phone Number"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                error={errors.phone}
+                //onBlur={() => handleBlur("phone")}
               />
               {formData.role === "JOB_SEEKER" && (
                 <InputWithLabel
-                  id="currentRole"
+                  id="currentPosition"
                   label="Current Role"
-                  value={formData.currentRole}
+                  value={formData.currentPosition}
                   onChange={(e) =>
-                    setFormData({ ...formData, currentRole: e.target.value })
+                    setFormData({ ...formData, currentPosition: e.target.value })
                   }
-                  error={errors.currentRole}
-                  onBlur={() => handleBlur("currentRole")}
+                  error={errors.currentPosition}
+                  //onBlur={() => handleBlur("currentPosition")}
                 />
               )}
             </div>
           </div>
         );
       case 2:
-        if (formData.role === "JOB_SEEKER") {
+        const getPasswordStrength = (password: string) => {
+          let score = 0;
+          if (password.length >= 8) score++;
+          if (/[A-Z]/.test(password)) score++;
+          if (/[0-9]/.test(password)) score++;
+          if (/[^A-Za-z0-9]/.test(password)) score++;
+          return score;
+        };
+
+        const passwordStrength = getPasswordStrength(formData.password);
+        const strengthMessages = [
+          "Very weak",
+          "Weak",
+          "Moderate",
+          "Strong",
+          "Very strong",
+        ];
+        const strengthColors = [
+          "bg-red-500",
+          "bg-yellow-500",
+          "bg-yellow-300",
+          "bg-green-400",
+          "bg-green-500",
+        ];
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <Lock className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Secure your account
+              </h2>
+              <p className="text-gray-300">
+                Create a strong password to protect your account
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <InputWithLabel
+                id="password"
+                label="Password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                type="password"
+                error={errors.password}
+                //onBlur={() => handleBlur("password")}
+                description="Use at least 8 characters with a mix of letters, numbers, and symbols"
+              />
+
+              <InputWithLabel
+                id="confirmPassword"
+                label="Confirm Password"
+                value={formData.confirmPassword || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmPassword: e.target.value })
+                }
+                type="password"
+                error={errors.confirmPassword}
+                //onBlur={() => handleBlur("confirmPassword")}
+              />
+            </div>
+
+            <div className="bg-gray-800 p-4 rounded-lg mt-4">
+              <h4 className="text-sm font-medium text-white mb-2">
+                Password Strength
+              </h4>
+              <div className="flex gap-2 mb-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1 flex-1 rounded-full ${
+                      i <= passwordStrength
+                        ? strengthColors[passwordStrength]
+                        : "bg-gray-600"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-gray-300">
+                {formData.password.length > 0
+                  ? `Password strength: ${strengthMessages[passwordStrength]}`
+                  : "Enter a password to check strength"}
+              </p>
+            </div>
+          </div>
+        );
+      case 3:
           return (
             <div className="space-y-6">
               <div className="text-center mb-8">
@@ -586,325 +788,393 @@ const Onboarding = () => {
                   Help us understand your background
                 </p>
               </div>
-              <div className="mt-6">
-                <Label className="text-white">Years of Experience</Label>
-                <SelectDropdown
-                  value={formData.experience}
-                  setValue={(value) =>
-                    setFormData({ ...formData, experience: value })
-                  }
-                  options={["0-1", "2-3", "4-6", "7-10", "10+"]}
-                  error={errors.experience}
-                  onBlur={() => handleBlur("experience")}
-                />
-              </div>
-              <div className="mt-6">
-                <Label className="text-white">Highest Education</Label>
-                <SelectDropdown
-                  value={formData.education}
-                  setValue={(value) =>
-                    setFormData({ ...formData, education: value })
-                  }
-                  options={[
-                    "high-school",
-                    "associates",
-                    "bachelors",
-                    "masters",
-                    "phd",
-                    "bootcamp",
-                  ]}
-                  error={errors.education}
-                  onBlur={() => handleBlur("education")}
-                />
-              </div>
-            </div>
-          );
-        } else if (formData.role === "COACH") {
-          return (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <BookOpen className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Your Coaching Experience
-                </h2>
-                <p className="text-gray-300">Tell us about your expertise</p>
-              </div>
-              <Label className="text-white mt-9">Years of Experience</Label>
-              <SelectDropdown
-                value={formData.yearsOfExperience || ""}
-                setValue={(value) =>
-                  setFormData({ ...formData, yearsOfExperience: value })
-                }
-                options={yearsOfExperienceOptions}
-                error={errors.yearsOfExperience}
-                onBlur={() => handleBlur("yearsOfExperience")}
-              />
-              <Label className="text-white pt-6">Hourly Rate</Label>
-              <SelectDropdown
-                value={formData.hourlyRate || ""}
-                setValue={(value) =>
-                  setFormData({ ...formData, hourlyRate: value })
-                }
-                options={hourlyRateOptions}
-                error={errors.hourlyRate}
-                onBlur={() => handleBlur("hourlyRate")}
-              />
-            </div>
-          );
-        }
-        return null;
-      case 3:
-        if (formData.role === "JOB_SEEKER") {
-          return (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <Zap className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Skills & Interests
-                </h2>
-                <p className="text-gray-300">
-                  Your Skills, Expertise & Industry Focus
-                </p>
-              </div>
-              <div className="space-y-8">
-                <Label className="text-white text-lg mb-4 block">
-                  Your Skills
-                </Label>
-                <BadgeSelector
-                  options={skillOptions}
-                  selected={formData.skills}
-                  toggle={handleSkillToggle}
-                  color="blue"
-                  error={errors.skills}
-                  minSelection={3}
-                />
-                <Label className="text-white text-lg mb-4 block">
-                  Target Industries
-                </Label>
-                <BadgeSelector
-                  options={interestOptions}
-                  selected={formData.interests}
-                  toggle={handleInterestToggle}
-                  color="purple"
-                  error={errors.interests}
-                  minSelection={1}
-                />
-                 <div className="space-y-4">
-                <Label className="text-white text-lg">
-                  Your Expertise Areas
-                </Label>
-                {(formData.expertiseArea?.length
-                  ? formData.expertiseArea
-                  : [""]
-                ).map((area, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Input
-                      value={area}
-                      onChange={(e) => {
-                        const newExpertiseAreas = [
-                          ...(formData.expertiseArea || [""]),
-                        ];
-                        newExpertiseAreas[index] = e.target.value;
-                        setFormData({
-                          ...formData,
-                          expertiseArea: newExpertiseAreas,
-                        });
-                        setErrors(prev => ({
-                          ...prev,
-                          expertiseArea: validateField("expertiseArea", newExpertiseAreas)
-                        }));
-                      }}
-                      className="flex-1"
-                      placeholder="Enter your expertise area"
-                      onBlur={() => handleBlur("expertiseArea")}
-                    />
-                    {index > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newExpertiseAreas = (
-                            formData.expertiseArea || [""]
-                          ).filter((_, i) => i !== index);
-                          setFormData({
-                            ...formData,
-                            expertiseArea: newExpertiseAreas.length
-                              ? newExpertiseAreas
-                              : [],
-                          });
-                          setErrors(prev => ({
-                            ...prev,
-                            expertiseArea: validateField("expertiseArea", newExpertiseAreas)
-                          }));
-                        }}
-                        className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFormData({
-                      ...formData,
-                      expertiseArea: [...(formData.expertiseArea || [""]), ""],
-                    });
-                  }}
-                  className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-                {errors.expertiseArea && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.expertiseArea}
-                  </p>
-                )}
-              </div>
-              </div>
-            </div>
-          );
-        }
-        if (formData.role === "COACH") {
-          return (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <Zap className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Focus Industries
-                </h2>
-                <p className="text-gray-300">
-                  Select your focus industries
-                </p>
-              </div>
-              <div className="space-y-8">
-                <Label className="text-white text-lg mb-4 block">
-                  Preferred Industries
-                </Label>
-                <BadgeSelector
-                  options={interestOptions}
-                  selected={formData.preferredIndustries ?? []}
-                  toggle={handleIndustryToggle}
-                  color="purple"
-                  error={errors.preferredIndustries}
-                  minSelection={1}
-                />
-              </div>
               <div className="space-y-4">
-                <Label className="text-white text-lg">
-                  Your Expertise Areas
-                </Label>
-                {(formData.expertiseArea?.length
-                  ? formData.expertiseArea
-                  : [""]
-                ).map((area, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Input
-                      value={area}
-                      onChange={(e) => {
-                        const newExpertiseAreas = [
-                          ...(formData.expertiseArea || [""]),
-                        ];
-                        newExpertiseAreas[index] = e.target.value;
-                        setFormData({
-                          ...formData,
-                          expertiseArea: newExpertiseAreas,
-                        });
-                        setErrors(prev => ({
-                          ...prev,
-                          expertiseArea: validateField("expertiseArea", newExpertiseAreas)
-                        }));
-                      }}
-                      className="flex-1"
-                      placeholder="Enter your expertise area"
-                      onBlur={() => handleBlur("expertiseArea")}
-                    />
-                    {index > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newExpertiseAreas = (
-                            formData.expertiseArea || [""]
-                          ).filter((_, i) => i !== index);
-                          setFormData({
-                            ...formData,
-                            expertiseArea: newExpertiseAreas.length
-                              ? newExpertiseAreas
-                              : [],
-                          });
-                          setErrors(prev => ({
-                            ...prev,
-                            expertiseArea: validateField("expertiseArea", newExpertiseAreas)
-                          }));
-                        }}
-                        className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
+                <Label className="text-white text-lg">Your Education</Label>
+
+                {(formData.educations?.length
+                  ? formData.educations
+                  : [
+                      {
+                        institution: "",
+                        degree: "",
+                        startDate: "",
+                        endDate: "",
+                      },
+                    ]
+                ).map((group, index) => (
+                  <div
+                    key={index}
+                    className="space-y-4 p-4 border border-gray-700 rounded-lg"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-white font-medium">
+                        Education #{index + 1}
+                      </h4>
+                      {index > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newGroups = [
+                              ...(formData.educations || []),
+                            ];
+                            newGroups.splice(index, 1);
+                            setFormData({
+                              ...formData,
+                              educations: newGroups.length
+                                ? newGroups
+                                : undefined,
+                            });
+                          }}
+                          className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-white">Institution</Label>
+                        <Input
+                          value={group.institution}
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.educations|| []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              institution: e.target.value,
+                            };
+                            setFormData({
+                              ...formData,
+                              educations: newGroups,
+                            });
+                          }}
+                          placeholder="e.g. Harvard University"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white">Degree Name</Label>
+                        <Input
+                          value={group.degree}
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.educations || []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              degree: e.target.value,
+                            };
+                            setFormData({
+                              ...formData,
+                              educations: newGroups,
+                            });
+                          }}
+                          placeholder="e.g. Bachelor of Science in Computer Science"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white">Started At</Label>
+                        <input
+                          type="date"
+                          value={group.startDate || ""}
+                           className="
+    flex h-10 w-full rounded-md border border-gray-700 
+    bg-black text-white px-3 py-2 text-base 
+    placeholder-gray-400 focus:outline-none focus:ring-2 
+    focus:ring-purple-500 focus:border-purple-500 
+    disabled:cursor-not-allowed disabled:opacity-50
+    md:text-sm
+  "
+                          
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.educations || []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              startDate: e.target.value, // string (yyyy-mm-dd)
+                            };
+                            setFormData({
+                              ...formData,
+                              educations: newGroups,
+                            });
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white">End At</Label>
+                        <input
+                          type="date"
+                          value={group.endDate || ""}
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.educations || []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              endDate: e.target.value, // string (yyyy-mm-dd)
+                            };
+                            setFormData({
+                              ...formData,
+                              educations: newGroups,
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ))}
+
                 <Button
                   variant="outline"
                   onClick={() => {
                     setFormData({
                       ...formData,
-                      expertiseArea: [...(formData.expertiseArea || [""]), ""],
+                      educations: [
+                        ...(formData.educations || []),
+                        {
+                          institution: "",
+                          degree: "",
+                          startDate: "",
+                          endDate: "",
+                        },
+                      ],
                     });
                   }}
-                  className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10"
+                  className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10 w-full"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another Education
                 </Button>
-                {errors.expertiseArea && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.expertiseArea}
-                  </p>
-                )}
               </div>
             </div>
           );
-        }
+        
+        return null;
       case 4:
-        if (formData.role === "JOB_SEEKER") {
-          return (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <Target className="h-12 w-12 text-orange-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Career Goals
-                </h2>
-                <p className="text-gray-300">Define your career aspirations</p>
-              </div>
-              <InputWithLabel
-                id="targetRole"
-                label="Target Role"
-                value={formData.targetRole}
-                onChange={(e) =>
-                  setFormData({ ...formData, targetRole: e.target.value })
-                }
-                error={errors.targetRole}
-                onBlur={() => handleBlur("targetRole")}
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <Zap className="h-12 w-12 text-green-400 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Skills & Interests
+              </h2>
+              <p className="text-gray-300">
+                Your Skills, Expertise & Industry Focus
+              </p>
+            </div>
+            <div className="space-y-8">
+              <Label className="text-white text-lg mb-4 block">
+                Your Skills
+              </Label>
+              <BadgeSelector
+                options={skillOptions}
+                selected={formData.skills.map(skill => skill.name)}
+                toggle={handleSkillToggle}
+                color="blue"
+                error={errors.skills}
+                minSelection={3}
               />
-              <div className="mt-6">
-                <Label className="text-white">Salary Expectation</Label>
-                <SelectDropdown
-                  value={formData.salaryExpectation}
-                  setValue={(value) =>
-                    setFormData({ ...formData, salaryExpectation: value })
-                  }
-                  options={["30-50k", "50-75k", "75-100k", "100-150k", "150k+"]}
-                  error={errors.salaryExpectation}
-                  onBlur={() => handleBlur("salaryExpectation")}
-                />
+              {/* <Label className="text-white text-lg mb-4 block">
+                Target Industries
+              </Label>
+              <BadgeSelector
+                options={interestOptions}
+                selected={formData.interests}
+                toggle={handleInterestToggle}
+                color="purple"
+                error={errors.interests}
+                minSelection={1}
+              /> */}
+              <div className="space-y-4">
+                <Label className="text-white text-lg">Your Experience</Label>
+
+                {(formData.experiences &&
+                formData.experiences.length > 0
+                  ? formData.experiences
+                  : [{ job_role: "", company: "", started_at: "", ended_at: "" }]
+                ).map((group, index) => (
+                  <div
+                    key={index}
+                    className="space-y-4 p-4 border border-gray-700 rounded-lg"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-white font-medium">
+                        Experience #{index + 1}
+                      </h4>
+                      {index > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newGroups = [
+                              ...(formData.experiences || []),
+                            ];
+                            newGroups.splice(index, 1);
+                            setFormData({
+                              ...formData,
+                              experiences: newGroups.length
+                                ? newGroups
+                                : undefined,
+                            });
+                          }}
+                          className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-white">Job Role</Label>
+                        <Input
+                          value={(group as { job_role: string }).job_role || ""}
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.experiences || []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              job_role: e.target.value,
+                            };
+                            setFormData({
+                              ...formData,
+                              experiences: newGroups,
+                            });
+                          }}
+                          placeholder="e.g. Software Engineer"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white">Company</Label>
+                        <Input
+                          value={group.company || ""}
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.experiences || []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              company: e.target.value,
+                            };
+                            setFormData({
+                              ...formData,
+                              experiences: newGroups,
+                            });
+                          }}
+                          placeholder="e.g. Google"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white">Started At</Label>
+                        <Input
+                          type="date"
+                          value={group.started_at || ""}
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.experiences || []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              started_at: e.target.value,
+                            };
+                            setFormData({
+                              ...formData,
+                              experiences: newGroups,
+                            });
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white">End At</Label>
+                        <Input
+                          type="date"
+                          value={group.ended_at || ""}
+                          onChange={(e) => {
+                            const newGroups = [
+                              ...(formData.experiences || []),
+                            ];
+                            newGroups[index] = {
+                              ...newGroups[index],
+                              ended_at: e.target.value,
+                            };
+                            setFormData({
+                              ...formData,
+                              experiences: newGroups,
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      experiences: [
+                        ...(formData.experiences || []),
+                        { job_role: "", company: "", started_at: "", ended_at: "" },
+                      ],
+                    });
+                  }}
+                  className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10 w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another Experience
+                </Button>
               </div>
             </div>
-          );
-        }
+          </div>
+        );
+
+      case 5:
+        // if (formData.role === "JOB_SEEKER") {
+        //   return (
+        //     <div className="space-y-6">
+        //       <div className="text-center mb-8">
+        //         <Target className="h-12 w-12 text-orange-400 mx-auto mb-4" />
+        //         <h2 className="text-3xl font-bold text-white mb-2">
+        //           Career Goals
+        //         </h2>
+        //         <p className="text-gray-300">Define your career aspirations</p>
+        //       </div>
+        //       <InputWithLabel
+        //         id="targetRole"
+        //         label="Target Role"
+        //         value={formData.targetRole}
+        //         onChange={(e) =>
+        //           setFormData({ ...formData, targetRole: e.target.value })
+        //         }
+        //         error={errors.targetRole}
+        //         onBlur={() => handleBlur("targetRole")}
+        //       />
+        //       <div className="mt-6">
+        //         <Label className="text-white">Salary Expectation</Label>
+        //         <SelectDropdown
+        //           value={formData.salaryExpectation}
+        //           setValue={(value) =>
+        //             setFormData({ ...formData, salaryExpectation: value })
+        //           }
+        //           options={["30-50k", "50-75k", "75-100k", "100-150k", "150k+"]}
+        //           error={errors.salaryExpectation}
+        //           onBlur={() => handleBlur("salaryExpectation")}
+        //         />
+        //       </div>
+        //     </div>
+        //   );
+        // }
         if (formData.role === "COACH") {
           return (
             <div className="space-y-6">
@@ -929,7 +1199,7 @@ const Onboarding = () => {
                 placeholder="Write a brief description about yourself and your coaching style..."
                 rows={4}
                 className={`mt-1 ${errors.description ? "border-red-500" : ""}`}
-                onBlur={() => handleBlur("description")}
+                //onBlur={() => handleBlur("description")}
               />
               {errors.description && (
                 <p className="mt-1 text-sm text-red-500 flex items-center">
@@ -986,7 +1256,7 @@ const Onboarding = () => {
               <Button
                 onClick={handleNext}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                disabled={Object.values(errors).some(error => error)}
+                disabled={Object.values(errors).some((error) => error)}
               >
                 {step === totalSteps ? "Complete Setup" : "Next"}{" "}
                 <ArrowRight className="ml-2 h-4 w-4" />
