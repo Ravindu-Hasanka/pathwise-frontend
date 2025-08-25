@@ -9,13 +9,13 @@ export default function Navbar({ currentPage }: { currentPage?: string }) {
 
   const links = [
     { href: "/dashboard", label: "Dashboard" },
-    { href: "/user/careerpath", label: "Career Path" },
-    { href: "/user/skills", label: "Skills" },
-    { href: "/user/jobs", label: "Jobs" },
-    { href: "/user/resumebuilder", label: "CV Builder" },
-    { href: "/user/explore", label: "Coaches" },
-    { href: "/user/community", label: "Community" },
-    { href: "/user/interview", label: "AI Interviewer" },
+    { href: "/job-seeker/careerpath", label: "Career Path" },
+    { href: "/job-seeker/skills", label: "Skills" },
+    { href: "/job-seeker/jobs", label: "Jobs" },
+    { href: "/job-seeker/resumebuilder", label: "CV Builder" },
+    { href: "/job-seeker/explore", label: "Coaches" },
+    { href: "/job-seeker/community", label: "Community" },
+    { href: "/job-seeker/interview", label: "AI Interviewer" },
   ];
 
   // Close dropdown when clicking outside
@@ -82,7 +82,7 @@ export default function Navbar({ currentPage }: { currentPage?: string }) {
                 className="absolute right-0 top-12 mt-2 w-56 bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-700"
               >
                 <Link
-                  href="/user/profile/id"
+                  href="/job-seeker/profile/id"
                   className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
                   onClick={() => setIsDropdownOpen(false)}
                 >
@@ -103,7 +103,7 @@ export default function Navbar({ currentPage }: { currentPage?: string }) {
                   Profile
                 </Link>
                 <Link
-                  href="/user/logout"
+                  href="/job-seeker/logout"
                   className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
                   onClick={() => setIsDropdownOpen(false)}
                 >
