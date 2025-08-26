@@ -27,6 +27,7 @@ export default function CommunityPage() {
 
         <Tabs
           value={activeTab}
+          onValueChange={(value) => setActiveTab(value as "network" | "announcements" | "feed" | "messages")}
           className="space-y-6"
         >
           <TabsList className="bg-slate-800/50 border border-white/10">
