@@ -24,9 +24,13 @@ type Connection = {
     online?: boolean;
 };
 
-const Messages = () => {
+type MessagesProps = {
+    activeChat: string | null;
+    setActiveChat: (chat: string | null) => void;
+};
+
+const Messages: React.FC<MessagesProps> = ({ activeChat, setActiveChat }) => {
     const [connections, setConnections] = useState<Connection[]>([]);
-    const [activeChat, setActiveChat] = useState<string | null>(null);
     const [messages, setMessages] = useState<Record<string, Message[]>>({});
     const [message, setMessage] = useState("");
     const [stompClient, setStompClient] = useState<Client | null>(null);

@@ -12,7 +12,12 @@ import { Button } from "@/components/ui/button";
 
 const requestedUserId = 1;
 
-const NetworkTab: React.FC = () => {
+type NetworkTabProps = {
+    setActiveTab: (tab: "network" | "messages") => void;
+    setActiveChat: (chat: string) => void;
+};
+
+const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) => {
     type Connection = {
         connectionId: number;
         requestedUserId: string;
@@ -172,8 +177,7 @@ const NetworkTab: React.FC = () => {
                                                 variant="ghost"
                                                 size="sm"
                                                 className="text-blue-400 hover:bg-blue-400/10"
-                                            // You can lift this up if you want to open chat
-                                            // onClick={() => { setActiveTab("messages"); setActiveChat(connection.requestedUserName); }}
+                                                onClick={() => { setActiveTab("messages"); setActiveChat(connection.requestedUserName); }}
                                             >
                                                 <MessageSquare className="h-4 w-4" />
                                             </Button>

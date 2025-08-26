@@ -10,7 +10,8 @@ import FeedTab from "./tabs/FeedTab";
 import Messages from "./tabs/Messages";
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState("network");
+  const [activeTab, setActiveTab] = useState<"network" | "announcements" | "feed" | "messages">("network");
+  const [activeChat, setActiveChat] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -61,7 +62,7 @@ export default function CommunityPage() {
           </TabsList>
 
           <TabsContent value="network">
-            <NetworkTab />
+            <NetworkTab setActiveTab={setActiveTab} setActiveChat={setActiveChat} />
           </TabsContent>
           <TabsContent value="announcements">
             <AnnouncementsTab />
@@ -70,7 +71,7 @@ export default function CommunityPage() {
             <FeedTab />
           </TabsContent>
           <TabsContent value="messages">
-            <Messages />
+            <Messages activeChat={activeChat} setActiveChat={setActiveChat} />
           </TabsContent>
         </Tabs>
       </div>
