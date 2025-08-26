@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -25,12 +25,15 @@ import {
   Target,
 } from "lucide-react";
 import Navbar from "../../../components/ui/navbar";
+import { getRecommendedCourses } from "@/api/api";
 
 export default function SkillGapAnalysis() {
   const [activeTab, setActiveTab] = useState("analysis");
+  const [skillData, setSkillData] = useState<any[]>([]);
+  const [recommendedResources, setRecommendedResources] = useState<any[]>([]);
 
   // Sample data - in a real app this would come from user profile and backend
-  const skillData = [
+  const skillDataSample = [
     { skill: "JavaScript", current: 75, target: 90 },
     { skill: "React", current: 65, target: 85 },
     { skill: "Node.js", current: 60, target: 80 },
@@ -39,7 +42,7 @@ export default function SkillGapAnalysis() {
     { skill: "AWS", current: 30, target: 65 },
   ];
 
-  const recommendedResources = [
+  const recommendedResourcesSample = [
     {
       title: "Advanced React Patterns",
       type: "Course",
@@ -79,6 +82,24 @@ export default function SkillGapAnalysis() {
     { skill: "React", progress: 65, target: 85 },
     { skill: "Node.js", progress: 60, target: 80 },
   ];
+
+  useEffect(() => {
+    // Fetch user skill data and recommended resources from backend here
+    const fetchData = async () => {
+      // Example: const response = await fetch('/api/user/skills');
+      // const data = await response.json();
+      // setSkillData(data.skills);
+      // setRecommendedResources(data.recommendations);
+      const response = await getRecommendedCourses(1);
+      const data: getRecommendedCoursesRootType = response.data;
+      console.log(data);
+
+      setSkillData(skillDataSample);
+      setRecommendedResources(data);
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
