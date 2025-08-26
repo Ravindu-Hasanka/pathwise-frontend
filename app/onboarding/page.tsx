@@ -32,6 +32,8 @@ import {
   BookOpen,
   AlertCircle,
   Lock,
+  GraduationCap,
+  Presentation,
 } from "lucide-react";
 
 type InputWithLabelProps = {
@@ -43,6 +45,7 @@ type InputWithLabelProps = {
   error?: string;
   onBlur?: () => void;
   description?: string;
+  placeholder?: string;
 };
 const InputWithLabel: React.FC<InputWithLabelProps> = ({
   id,
@@ -53,6 +56,7 @@ const InputWithLabel: React.FC<InputWithLabelProps> = ({
   error,
   onBlur,
   description,
+  placeholder,
 }) => (
   <div>
     <Label htmlFor={id} className="text-white">
@@ -65,6 +69,7 @@ const InputWithLabel: React.FC<InputWithLabelProps> = ({
       type={type}
       className={`mt-1 ${error ? "border-red-500" : ""}`}
       onBlur={onBlur}
+      placeholder={placeholder}
     />
     {description && <p className="mt-1 text-xs text-gray-400">{description}</p>}
     {error && (
@@ -175,30 +180,39 @@ const Onboarding = () => {
     name: string;
     email: string;
     address: string;
-    phone: string;
+    contactNo: string;
     password: string;
     confirmPassword?: string;
     currentPosition: string;
-    skills:  Array<{
-       name : string;
-    }>;
-    //targetRole: string;
-    currentIndustry: string;//industries
-    //salaryExpectation: string;
-    //expertiseArea?: string[];
-    //hourlyRate?: string;
+    currentIndustry: string;
     description?: string;
-    experiences?: Array<{
-      job_role: string;
-      company: string;
-      started_at: string;
-      ended_at: string;
+
+    skillList: Array<{
+      skillName: string;
     }>;
-    educations?: Array<{
-      institution: string;
-      degree: string;
-      startDate: string;
-      endDate: string;
+
+    industryList?: Array<{
+      industryName: string;
+      jobRoleDtos: Array<{
+        jobRoleName: string;
+        minSalary?: number;
+        maxSalary?: number;
+        hourlyConsultingSalary?: number;
+      }>;
+    }>;
+
+    experienceList?: Array<{
+      jobTitle: string;
+      companyName: string;
+      startedAt: string;
+      endedAt: string;
+    }>;
+
+    educationList?: Array<{
+      educationName: string;
+      institute: string;
+      startedAt: string;
+      endedAt: string;
     }>;
   };
 
@@ -207,20 +221,31 @@ const Onboarding = () => {
     name: "",
     email: "",
     address: "",
-    phone: "",
-    //currentRole: "",
+    contactNo: "",
     password: "",
     confirmPassword: "",
-    skills: [{ name: "" }],
+    skillList: [],
     currentPosition: "",
     currentIndustry: "",
-    //salaryExpectation: "",
-    //expertiseArea: [],
-    //hourlyRate: "",
     description: "",
-    experiences: [{ job_role: "", company: "", started_at: "", ended_at: "" }],
-    educations: [
-      { institution: "", degree: "", startDate: "", endDate: "" },
+    experienceList: [
+      { jobTitle: "", companyName: "", startedAt: "", endedAt: "" },
+    ],
+    educationList: [
+      { educationName: "", institute: "", startedAt: "", endedAt: "" },
+    ],
+    industryList: [
+      {
+        industryName: "",
+        jobRoleDtos: [
+          {
+            jobRoleName: "",
+            minSalary: 0,
+            maxSalary: 0,
+            hourlyConsultingSalary: 0,
+          },
+        ],
+      },
     ],
   });
 
@@ -247,40 +272,6 @@ const Onboarding = () => {
     "Analytics",
   ];
 
-  const interestOptions = [
-    "Technology",
-    "Healthcare",
-    "Finance",
-    "Education",
-    "E-commerce",
-    "Gaming",
-    "Media",
-    "Startups",
-    "Enterprise",
-    "Non-profit",
-  ];
-
-  const expertiseAreaOptions = [
-    "Career Development",
-    "Leadership",
-    "Technical Skills",
-    "Entrepreneurship",
-    "Communication Skills",
-    "Personal Growth",
-    "Job Search Strategies",
-    "Team Management",
-    "Work-Life Balance",
-    "Interview Preparation",
-  ];
-
-  const yearsOfExperienceOptions = [
-    "0-1 years",
-    "2-3 years",
-    "4-6 years",
-    "7-10 years",
-    "10+ years",
-  ];
-
   const hourlyRateOptions = [
     "Under $50/hr",
     "$50 - $100/hr",
@@ -289,272 +280,223 @@ const Onboarding = () => {
     "$300+",
   ];
 
-  // Validation rules
-  // const validateField = (name: string, value: any): string => {
-  //   switch (name) {
-  //     case "role":
-  //       return !value ? "Please select a role" : "";
-  //     case "name":
-  //       return !value
-  //         ? "Name is required"
-  //         : value.length < 2
-  //         ? "Name is too short"
-  //         : "";
-  //     case "email":
-  //       return !value
-  //         ? "Email is required"
-  //         : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-  //         ? "Invalid email format"
-  //         : "";
-  //     case "address":
-  //       return !value ? "Address is required" : "";
-  //     case "phone":
-  //       return !value
-  //         ? "Phone number is required"
-  //         : !/^\d{10}$/.test(value)
-  //         ? "Invalid phone number format"
-  //         : "";
-  //     case "password":
-  //       if (!value) return "Password is required";
-  //       if (value.length < 8) return "Password must be at least 8 characters";
-  //       if (!/[A-Z]/.test(value))
-  //         return "Password must contain at least one uppercase letter";
-  //       if (!/[a-z]/.test(value))
-  //         return "Password must contain at least one lowercase letter";
-  //       if (!/[0-9]/.test(value))
-  //         return "Password must contain at least one number";
-  //       if (!/[^A-Za-z0-9]/.test(value))
-  //         return "Password must contain at least one special character";
-  //       return "";
-  //     case "confirmPassword":
-  //       if (!value) return "Please confirm your password";
-  //       if (value !== formData.password) return "Passwords do not match";
-  //       return "";
-  //     case "currentRole":
-  //       return formData.role === "JOB_SEEKER" && !value
-  //         ? "Current role is required"
-  //         : "";
-  //     case "experience":
-  //       return formData.role === "JOB_SEEKER" && !value
-  //         ? "Experience level is required"
-  //         : "";
-  //     case "education":
-  //       return formData.role === "JOB_SEEKER" && !value
-  //         ? "Education level is required"
-  //         : "";
-  //     case "yearsOfExperience":
-  //       return formData.role === "COACH" && !value
-  //         ? "Years of experience is required"
-  //         : "";
-  //     case "hourlyRate":
-  //       return formData.role === "COACH" && !value
-  //         ? "Hourly rate is required"
-  //         : "";
-  //     case "skills":
-  //       return formData.role === "JOB_SEEKER" && value.length < 3
-  //         ? "Please select at least 3 skills"
-  //         : "";
-  //     case "interests":
-  //       return formData.role === "JOB_SEEKER" && value.length < 1
-  //         ? "Please select at least 1 interest"
-  //         : "";
-  //     case "preferredIndustries":
-  //       return formData.role === "COACH" && (value?.length ?? 0) < 1
-  //         ? "Please select at least 1 industry"
-  //         : "";
-  //     case "expertiseArea":
-  //       return (value?.length ?? 0) < 1
-  //         ? "Please add at least 1 expertise area"
-  //         : "";
-  //     case "targetRole":
-  //       return formData.role === "JOB_SEEKER" && !value
-  //         ? "Target role is required"
-  //         : "";
-  //     case "salaryExpectation":
-  //       return formData.role === "JOB_SEEKER" && !value
-  //         ? "Salary expectation is required"
-  //         : "";
-  //     case "description":
-  //       return formData.role === "COACH" && (!value || value.length < 50)
-  //         ? "Description must be at least 50 characters"
-  //         : "";
-  //     case "experienceGroups":
-  //       if (!value || value.length === 0)
-  //         return "Please add at least one experience";
-  //       for (const group of value) {
-  //         if (!group.role) return "Job role is required for all experiences";
-  //         if (!group.company) return "Company is required for all experiences";
-  //         if (!group.startDate)
-  //           return "Start date is required for all experiences";
-  //       }
-  //       return "";
-  //     case "educationGroups":
-  //       if (!value || value.length === 0)
-  //         return "Please add at least one education";
-  //       for (const group of value) {
-  //         if (!group.institution)
-  //           return "Institution is required for all education entries";
-  //         if (!group.degree)
-  //           return "Degree name is required for all education entries";
-  //         if (!group.startDate)
-  //           return "Start date is required for all education entries";
-  //       }
-  //       return "";
-  //     default:
-  //       return "";
-  //   }
-  // };
+  // Validation functions
+  const validateField = (name: string, value: any): string => {
+    switch (name) {
+      case "role":
+        return !value ? "Please select a role" : "";
+      case "name":
+        if (!value) return "Name is required";
+        if (value.length < 2) return "Name must be at least 2 characters";
+        return "";
+      case "email":
+        if (!value) return "Email is required";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+          return "Invalid email format";
+        return "";
+      case "address":
+        return !value ? "Address is required" : "";
+      case "contactNo":
+        if (!value) return "Phone number is required";
+        if (!/^\+?[0-9]{10,15}$/.test(value.replace(/\s/g, "")))
+          return "Please enter a valid phone number";
+        return "";
+      case "currentPosition":
+        return formData.role === "JOB_SEEKER" && !value
+          ? "Current position is required"
+          : "";
+      case "password":
+        if (!value) return "Password is required";
+        if (value.length < 8) return "Password must be at least 8 characters";
+        if (!/(?=.*[a-z])/.test(value))
+          return "Password must contain at least one lowercase letter";
+        if (!/(?=.*[A-Z])/.test(value))
+          return "Password must contain at least one uppercase letter";
+        if (!/(?=.*\d)/.test(value))
+          return "Password must contain at least one number";
+        if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(value))
+          return "Password must contain at least one special character";
+        return "";
+      case "confirmPassword":
+        if (!value) return "Please confirm your password";
+        if (value !== formData.password) return "Passwords do not match";
+        return "";
+      case "skills":
+        return formData.skillList.length < 2
+          ? "Please select at least 3 skills"
+          : "";
+      case "description":
+        if (formData.role === "COACH") {
+          if (!value) return "Description is required for coaches";
+          if (value.length < 50)
+            return "Description must be at least 50 characters";
+        }
+        return "";
+      case "industryList":
+        if (
+          !formData.industryList ||
+          formData.industryList.length === 0 ||
+          !formData.industryList[0].industryName
+        )
+          return "At least one industry is required";
+        return "";
+      case "educationList":
+        if (
+          !formData.educationList ||
+          formData.educationList.length === 0 ||
+          !formData.educationList[0].institute ||
+          !formData.educationList[0].educationName
+        )
+          return "At least one education entry is required";
+        return "";
+      case "experienceList":
+        if (
+          !formData.experienceList ||
+          formData.experienceList.length === 0 ||
+          !formData.experienceList[0].jobTitle ||
+          !formData.experienceList[0].companyName
+        )
+          return "At least one experience entry is required";
+        return "";
+      default:
+        return "";
+    }
+  };
 
-  // Validate all fields for current step
-  // const validateStep = (step: number): boolean => {
-  //   const newErrors: Record<string, string> = {};
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {};
 
-  //   if (step === 1) {
-  //     newErrors.role = validateField("role", formData.role);
-  //     newErrors.name = validateField("name", formData.name);
-  //     newErrors.email = validateField("email", formData.email);
-  //     newErrors.address = validateField("address", formData.address);
-  //     newErrors.phone = validateField("phone", formData.phone);
-  //     if (formData.role === "JOB_SEEKER") {
-  //       newErrors.currentRole = validateField(
-  //         "currentPosition",
-  //         formData.currentPosition
-  //       );
-  //     }
-  //   } else if (step === 2) {
-  //     newErrors.password = validateField("password", formData.password);
-  //     newErrors.confirmPassword = validateField(
-  //       "confirmPassword",
-  //       formData.confirmPassword
-  //     );
-  //   } else if (step === 3) {
-  //     if (formData.role === "JOB_SEEKER") {
-  //       newErrors.experience = validateField("experience", formData.experience);
-  //       newErrors.education = validateField("education", formData.education);
-  //     // } else if (formData.role === "COACH") {
-  //     //   newErrors.yearsOfExperience = validateField(
-  //     //     "yearsOfExperience",
-  //     //     formData.yearsOfExperience
-  //     //   );
-  //     //   newErrors.hourlyRate = validateField("hourlyRate", formData.hourlyRate);
-  //      }
-  //   } else if (step === 4) {
-  //     if (formData.role === "JOB_SEEKER") {
-  //       newErrors.skills = validateField("skills", formData.skills);
-  //       //newErrors.interests = validateField("interests", formData.interests);
-  //     // } else if (formData.role === "COACH") {
-  //     //   newErrors.preferredIndustries = validateField(
-  //     //     "preferredIndustries",
-  //     //     formData.preferredIndustries
-  //     //   );
-  //     //   newErrors.expertiseArea = validateField(
-  //     //     "expertiseArea",
-  //     //     formData.expertiseArea
-  //     //   );
-  //     // }
-  //   } else if (step === 5) {
-  //     if (formData.role === "JOB_SEEKER") {
-  //       newErrors.targetRole = validateField("targetRole", formData.targetRole);
-  //       newErrors.salaryExpectation = validateField(
-  //         "salaryExpectation",
-  //         formData.salaryExpectation
-  //       );
-  //     } else if (formData.role === "COACH") {
-  //       newErrors.description = validateField(
-  //         "description",
-  //         formData.description
-  //       );
-  //     }
-  //   }
+    switch (step) {
+      case 1:
+        newErrors.role = validateField("role", formData.role);
+        newErrors.name = validateField("name", formData.name);
+        newErrors.email = validateField("email", formData.email);
+        newErrors.address = validateField("address", formData.address);
+        newErrors.contactNo = validateField("contactNo", formData.contactNo);
+        newErrors.currentPosition = validateField(
+          "currentPosition",
+          formData.currentPosition
+        );
+        break;
+      case 2:
+        newErrors.password = validateField("password", formData.password);
+        newErrors.confirmPassword = validateField(
+          "confirmPassword",
+          formData.confirmPassword
+        );
+        break;
+      case 3:
+        newErrors.educationList = validateField(
+          "educationList",
+          formData.educationList
+        );
+        break;
+      case 4:
+        newErrors.skills = validateField("skills", formData.skillList);
+        newErrors.experienceList = validateField(
+          "experienceList",
+          formData.experienceList
+        );
+        break;
+      case 5:
+        newErrors.industryList = validateField(
+          "industryList",
+          formData.industryList
+        );
+        if (formData.role === "COACH") {
+          newErrors.description = validateField(
+            "description",
+            formData.description
+          );
+        }
+        break;
+    }
 
-  //   setErrors(newErrors);
-  //   return Object.values(newErrors).every((error) => !error);
-  // };
+    setErrors(newErrors);
+    return Object.values(newErrors).every((error) => error === "");
+  };
 
-  // const handleBlur = (field: string) => {
-  //   setTouched((prev) => ({ ...prev, [field]: true }));
-  //   setErrors((prev) => ({
-  //     ...prev,
-  //     [field]: validateField(field, formData[field as keyof FormData]),
-  //   }));
-  // };
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const error = validateField(field, formData[field as keyof FormData]);
+    if (error) {
+      setErrors({ ...errors, [field]: error });
+    } else {
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
+    }
+  };
 
   const handleSkillToggle = (skillName: string) => {
-  const isSelected = formData.skills.some(skill => skill.name === skillName);
-  
-  const newSkills = isSelected
-    ? formData.skills.filter(skill => skill.name !== skillName)
-    : [...formData.skills, { name: skillName }];
+    const isSelected = formData.skillList.some(
+      (skill) => skill.skillName === skillName
+    );
 
-  setFormData((prev) => ({ ...prev, skills: newSkills }));
-};
+    const newSkills = isSelected
+      ? formData.skillList.filter((skill) => skill.skillName !== skillName)
+      : [...formData.skillList, { skillName }];
 
-  // const handleInterestToggle = (interest: string) => {
-  //   const newInterests = formData.interests.includes(interest)
-  //     ? formData.interests.filter((i) => i !== interest)
-  //     : [...formData.interests, interest];
+    setFormData((prev) => ({ ...prev, skillList: newSkills }));
 
-  //   setFormData((prev) => ({ ...prev, interests: newInterests }));
-  //   setErrors((prev) => ({
-  //     ...prev,
-  //     interests: validateField("interests", newInterests),
-  //   }));
-  // };
-
-  // const handleIndustryToggle = (industry: string) => {
-  //   const newIndustries = (formData.preferredIndustries ?? []).includes(
-  //     industry
-  //   )
-  //     ? (formData.preferredIndustries ?? []).filter((i) => i !== industry)
-  //     : [...(formData.preferredIndustries ?? []), industry];
-
-  //   setFormData((prev) => ({ ...prev, preferredIndustries: newIndustries }));
-  //   setErrors((prev) => ({
-  //     ...prev,
-  //     preferredIndustries: validateField("preferredIndustries", newIndustries),
-  //   }));
-  // };
+    // Validate skills after update
+    if (touched.skills) {
+      const error = validateField("skills", newSkills);
+      if (error) {
+        setErrors({ ...errors, skills: error });
+      } else {
+        const newErrors = { ...errors };
+        delete newErrors.skills;
+        setErrors(newErrors);
+      }
+    }
+  };
 
   const handleNext = async () => {
-    // const newTouched: Record<string, boolean> = {};
-    // if (step === 1) {
-    //   newTouched.role = true;
-    //   newTouched.name = true;
-    //   newTouched.email = true;
-    //   newTouched.phone = true;
-    //   newTouched.address = true;
-    //   if (formData.role === "JOB_SEEKER") newTouched.currentRole = true;
-    // } else if (step === 2) {
-    //   if (formData.role === "JOB_SEEKER") {
-    //     newTouched.experience = true;
-    //     newTouched.education = true;
-    //   } else if (formData.role === "COACH") {
-    //     newTouched.yearsOfExperience = true;
-    //     newTouched.hourlyRate = true;
-    //   }
-    // } else if (step === 3) {
-    //   if (formData.role === "JOB_SEEKER") {
-    //     newTouched.skills = true;
-    //     newTouched.interests = true;
-    //     newTouched.expertiseArea = true;
-    //   } else if (formData.role === "COACH") {
-    //     newTouched.preferredIndustries = true;
-    //     newTouched.expertiseArea = true;
-    //   }
-    // } else if (step === 4) {
-    //   if (formData.role === "JOB_SEEKER") {
-    //     newTouched.targetRole = true;
-    //     newTouched.salaryExpectation = true;
-    //   } else if (formData.role === "COACH") {
-    //     newTouched.description = true;
-    //   }
-    // }
-    // setTouched((prev) => ({ ...prev, ...newTouched }));
+    const newTouched: Record<string, boolean> = { ...touched };
 
-    // // Validate current step
-    // if (!validateStep(step)) {
-    //   return;
-    // }
+    switch (step) {
+      case 1:
+        Object.keys(formData).forEach((key) => {
+          if (
+            [
+              "role",
+              "name",
+              "email",
+              "address",
+              "contactNo",
+              "currentPosition",
+            ].includes(key)
+          ) {
+            newTouched[key] = true;
+          }
+        });
+        break;
+      case 2:
+        newTouched.password = true;
+        newTouched.confirmPassword = true;
+        break;
+      case 3:
+        newTouched.educationList = true;
+        break;
+      case 4:
+        newTouched.skills = true;
+        newTouched.experienceList = true;
+        break;
+      case 5:
+        newTouched.industryList = true;
+        if (formData.role === "COACH") {
+          newTouched.description = true;
+        }
+        break;
+    }
+
+    setTouched(newTouched);
+
+    // Validate current step
+    if (!validateStep(step)) {
+      return;
+    }
 
     if (step < totalSteps) {
       setStep(step + 1);
@@ -589,7 +531,7 @@ const Onboarding = () => {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-8">
+            <div className="text-center mb-8 mt-3">
               <User className="h-12 w-12 text-blue-400 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-white mb-2">
                 Let's get to know you
@@ -607,15 +549,15 @@ const Onboarding = () => {
                     ...formData,
                     role: role as "JOB_SEEKER" | "COACH",
                   });
-                  // setErrors((prev) => ({
-                  //   ...prev,
-                  //   role: validateField("role", role),
-                  // }));
+                  if (touched.role) {
+                    const error = validateField("role", role);
+                    setErrors({ ...errors, role: error });
+                  }
                 }}
               >
                 <SelectTrigger
                   className={`mt-1 ${errors.role ? "border-red-500" : ""}`}
-                  //onBlur={() => handleBlur("role")}
+                  onBlur={() => handleBlur("role")}
                 >
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
@@ -639,8 +581,9 @@ const Onboarding = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
+                placeholder="e.g. John Doe"
                 error={errors.name}
-                //onBlur={() => handleBlur("name")}
+                onBlur={() => handleBlur("name")}
               />
               <InputWithLabel
                 id="email"
@@ -651,7 +594,8 @@ const Onboarding = () => {
                 }
                 type="email"
                 error={errors.email}
-                //onBlur={() => handleBlur("email")}
+                onBlur={() => handleBlur("email")}
+                placeholder="e.g. johndoe@example.com"
               />
               <InputWithLabel
                 id="address"
@@ -661,17 +605,19 @@ const Onboarding = () => {
                   setFormData({ ...formData, address: e.target.value })
                 }
                 error={errors.address}
-                //onBlur={() => handleBlur("address")}
+                onBlur={() => handleBlur("address")}
+                placeholder="e.g. 123 Main Street, Colombo, Sri Lanka"
               />
               <InputWithLabel
                 id="phone"
                 label="Phone Number"
-                value={formData.phone}
+                value={formData.contactNo}
                 onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
+                  setFormData({ ...formData, contactNo: e.target.value })
                 }
-                error={errors.phone}
-                //onBlur={() => handleBlur("phone")}
+                error={errors.contactNo}
+                onBlur={() => handleBlur("contactNo")}
+                placeholder="e.g. +94771234567"
               />
               {formData.role === "JOB_SEEKER" && (
                 <InputWithLabel
@@ -679,10 +625,14 @@ const Onboarding = () => {
                   label="Current Role"
                   value={formData.currentPosition}
                   onChange={(e) =>
-                    setFormData({ ...formData, currentPosition: e.target.value })
+                    setFormData({
+                      ...formData,
+                      currentPosition: e.target.value,
+                    })
                   }
                   error={errors.currentPosition}
-                  //onBlur={() => handleBlur("currentPosition")}
+                  onBlur={() => handleBlur("currentPosition")}
+                  placeholder="e.g. Software Engineer, Marketing Manager"
                 />
               )}
             </div>
@@ -715,8 +665,8 @@ const Onboarding = () => {
         ];
         return (
           <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Lock className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+            <div className="text-center mb-8 mt-3">
+              <Lock className="h-12 w-12 text-red-400 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-white mb-2">
                 Secure your account
               </h2>
@@ -735,7 +685,7 @@ const Onboarding = () => {
                 }
                 type="password"
                 error={errors.password}
-                //onBlur={() => handleBlur("password")}
+                onBlur={() => handleBlur("password")}
                 description="Use at least 8 characters with a mix of letters, numbers, and symbols"
               />
 
@@ -748,7 +698,7 @@ const Onboarding = () => {
                 }
                 type="password"
                 error={errors.confirmPassword}
-                //onBlur={() => handleBlur("confirmPassword")}
+                onBlur={() => handleBlur("confirmPassword")}
               />
             </div>
 
@@ -777,28 +727,268 @@ const Onboarding = () => {
           </div>
         );
       case 3:
-          return (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <Briefcase className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Your Experience
-                </h2>
-                <p className="text-gray-300">
-                  Help us understand your background
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8 mt-3">
+              <GraduationCap className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Your Education
+              </h2>
+              <p className="text-gray-300">
+                Share your academic background and qualifications
+              </p>
+            </div>
+            {errors.educationList && (
+              <div className="p-3 bg-red-500/10 border border-red-500 rounded-md">
+                <p className="text-red-500 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.educationList}
                 </p>
               </div>
-              <div className="space-y-4">
-                <Label className="text-white text-lg">Your Education</Label>
+            )}
+            <div className="space-y-4">
+              {(formData.educationList?.length
+                ? formData.educationList
+                : [
+                    {
+                      educationName: "",
+                      institute: "",
+                      startedAt: "",
+                      endedAt: "",
+                    },
+                  ]
+              ).map((group, index) => (
+                <div
+                  key={index}
+                  className="space-y-4 p-4 border border-gray-700 rounded-lg"
+                >
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-white font-medium">
+                      Education {index + 1}
+                    </h4>
+                    {index > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newGroups = [...(formData.educationList || [])];
+                          newGroups.splice(index, 1);
+                          setFormData({
+                            ...formData,
+                            educationList: newGroups.length
+                              ? newGroups
+                              : undefined,
+                          });
+                          if (touched.educationList) {
+                            const error = validateField(
+                              "educationList",
+                              newGroups.length ? newGroups : []
+                            );
+                            setErrors({ ...errors, educationList: error });
+                          }
+                        }}
+                        className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
 
-                {(formData.educations?.length
-                  ? formData.educations
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white">Institution</Label>
+                      <Input
+                        value={group.institute}
+                        onChange={(e) => {
+                          const newGroups = [...(formData.educationList || [])];
+                          newGroups[index] = {
+                            ...newGroups[index],
+                            institute: e.target.value,
+                          };
+                          setFormData({
+                            ...formData,
+                            educationList: newGroups,
+                          });
+                        }}
+                        placeholder="e.g. Harvard University"
+                        onBlur={() => {
+                          if (touched.educationList) {
+                            const error = validateField(
+                              "educationList",
+                              formData.educationList
+                            );
+                            setErrors({ ...errors, educationList: error });
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white">Degree Name</Label>
+                      <Input
+                        value={group.educationName}
+                        onChange={(e) => {
+                          const newGroups = [...(formData.educationList || [])];
+                          newGroups[index] = {
+                            ...newGroups[index],
+                            educationName: e.target.value,
+                          };
+                          setFormData({
+                            ...formData,
+                            educationList: newGroups,
+                          });
+                        }}
+                        placeholder="e.g. Bachelor of Science in Computer Science"
+                        onBlur={() => {
+                          if (touched.educationList) {
+                            const error = validateField(
+                              "educationList",
+                              formData.educationList
+                            );
+                            setErrors({ ...errors, educationList: error });
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white">Started At</Label>
+                      <Input
+                        type="date"
+                        value={group.startedAt || ""}
+                        onChange={(e) => {
+                          const newGroups = [...(formData.educationList || [])];
+                          newGroups[index] = {
+                            ...newGroups[index],
+                            startedAt: e.target.value,
+                          };
+                          setFormData({
+                            ...formData,
+                            educationList: newGroups,
+                          });
+                        }}
+                        onBlur={() => {
+                          if (touched.educationList) {
+                            const error = validateField(
+                              "educationList",
+                              formData.educationList
+                            );
+                            setErrors({ ...errors, educationList: error });
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white">Ended At</Label>
+                      <Input
+                        type="date"
+                        value={group.endedAt || ""}
+                        onChange={(e) => {
+                          const newGroups = [...(formData.educationList || [])];
+                          newGroups[index] = {
+                            ...newGroups[index],
+                            endedAt: e.target.value,
+                          };
+                          setFormData({
+                            ...formData,
+                            educationList: newGroups,
+                          });
+                        }}
+                        onBlur={() => {
+                          if (touched.educationList) {
+                            const error = validateField(
+                              "educationList",
+                              formData.educationList
+                            );
+                            setErrors({ ...errors, educationList: error });
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFormData({
+                    ...formData,
+                    educationList: [
+                      ...(formData.educationList || []),
+                      {
+                        institute: "",
+                        educationName: "",
+                        startedAt: "",
+                        endedAt: "",
+                      },
+                    ],
+                  });
+                }}
+                className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10 w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Another Education
+              </Button>
+            </div>
+          </div>
+        );
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8 mt-3">
+              <Zap className="h-12 w-12 text-green-400 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Skills & Experiences
+              </h2>
+              <p className="text-gray-300">
+                Highlight your skills, expertise, and professional journey
+              </p>
+            </div>
+
+            {errors.skills && (
+              <div className="p-3 bg-red-500/10 border border-red-500 rounded-md">
+                <p className="text-red-500 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.skills}
+                </p>
+              </div>
+            )}
+
+            {errors.experienceList && (
+              <div className="p-3 bg-red-500/10 border border-red-500 rounded-md">
+                <p className="text-red-500 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.experienceList}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-8">
+              <Label className="text-white text-lg mb-4 block">
+                Your Skills
+              </Label>
+              <BadgeSelector
+                options={skillOptions}
+                selected={formData.skillList.map((skill) => skill.skillName)}
+                toggle={handleSkillToggle}
+                color="blue"
+                error={errors.skills}
+                minSelection={3}
+              />
+
+              <div className="space-y-4">
+                <Label className="text-white text-lg">Your Experiences</Label>
+
+                {(formData.experienceList && formData.experienceList.length > 0
+                  ? formData.experienceList
                   : [
                       {
-                        institution: "",
-                        degree: "",
-                        startDate: "",
-                        endDate: "",
+                        jobTitle: "",
+                        companyName: "",
+                        startedAt: "",
+                        endedAt: "",
                       },
                     ]
                 ).map((group, index) => (
@@ -808,7 +998,7 @@ const Onboarding = () => {
                   >
                     <div className="flex justify-between items-center">
                       <h4 className="text-white font-medium">
-                        Education #{index + 1}
+                        Experience {index + 1}
                       </h4>
                       {index > 0 && (
                         <Button
@@ -816,212 +1006,22 @@ const Onboarding = () => {
                           size="sm"
                           onClick={() => {
                             const newGroups = [
-                              ...(formData.educations || []),
+                              ...(formData.experienceList || []),
                             ];
                             newGroups.splice(index, 1);
                             setFormData({
                               ...formData,
-                              educations: newGroups.length
+                              experienceList: newGroups.length
                                 ? newGroups
                                 : undefined,
                             });
-                          }}
-                          className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-white">Institution</Label>
-                        <Input
-                          value={group.institution}
-                          onChange={(e) => {
-                            const newGroups = [
-                              ...(formData.educations|| []),
-                            ];
-                            newGroups[index] = {
-                              ...newGroups[index],
-                              institution: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              educations: newGroups,
-                            });
-                          }}
-                          placeholder="e.g. Harvard University"
-                        />
-                      </div>
-
-                      <div>
-                        <Label className="text-white">Degree Name</Label>
-                        <Input
-                          value={group.degree}
-                          onChange={(e) => {
-                            const newGroups = [
-                              ...(formData.educations || []),
-                            ];
-                            newGroups[index] = {
-                              ...newGroups[index],
-                              degree: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              educations: newGroups,
-                            });
-                          }}
-                          placeholder="e.g. Bachelor of Science in Computer Science"
-                        />
-                      </div>
-
-                      <div>
-                        <Label className="text-white">Started At</Label>
-                        <input
-                          type="date"
-                          value={group.startDate || ""}
-                           className="
-    flex h-10 w-full rounded-md border border-gray-700 
-    bg-black text-white px-3 py-2 text-base 
-    placeholder-gray-400 focus:outline-none focus:ring-2 
-    focus:ring-purple-500 focus:border-purple-500 
-    disabled:cursor-not-allowed disabled:opacity-50
-    md:text-sm
-  "
-                          
-                          onChange={(e) => {
-                            const newGroups = [
-                              ...(formData.educations || []),
-                            ];
-                            newGroups[index] = {
-                              ...newGroups[index],
-                              startDate: e.target.value, // string (yyyy-mm-dd)
-                            };
-                            setFormData({
-                              ...formData,
-                              educations: newGroups,
-                            });
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <Label className="text-white">End At</Label>
-                        <input
-                          type="date"
-                          value={group.endDate || ""}
-                          onChange={(e) => {
-                            const newGroups = [
-                              ...(formData.educations || []),
-                            ];
-                            newGroups[index] = {
-                              ...newGroups[index],
-                              endDate: e.target.value, // string (yyyy-mm-dd)
-                            };
-                            setFormData({
-                              ...formData,
-                              educations: newGroups,
-                            });
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFormData({
-                      ...formData,
-                      educations: [
-                        ...(formData.educations || []),
-                        {
-                          institution: "",
-                          degree: "",
-                          startDate: "",
-                          endDate: "",
-                        },
-                      ],
-                    });
-                  }}
-                  className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10 w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Another Education
-                </Button>
-              </div>
-            </div>
-          );
-        
-        return null;
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Zap className="h-12 w-12 text-green-400 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold text-white mb-2">
-                Skills & Interests
-              </h2>
-              <p className="text-gray-300">
-                Your Skills, Expertise & Industry Focus
-              </p>
-            </div>
-            <div className="space-y-8">
-              <Label className="text-white text-lg mb-4 block">
-                Your Skills
-              </Label>
-              <BadgeSelector
-                options={skillOptions}
-                selected={formData.skills.map(skill => skill.name)}
-                toggle={handleSkillToggle}
-                color="blue"
-                error={errors.skills}
-                minSelection={3}
-              />
-              {/* <Label className="text-white text-lg mb-4 block">
-                Target Industries
-              </Label>
-              <BadgeSelector
-                options={interestOptions}
-                selected={formData.interests}
-                toggle={handleInterestToggle}
-                color="purple"
-                error={errors.interests}
-                minSelection={1}
-              /> */}
-              <div className="space-y-4">
-                <Label className="text-white text-lg">Your Experience</Label>
-
-                {(formData.experiences &&
-                formData.experiences.length > 0
-                  ? formData.experiences
-                  : [{ job_role: "", company: "", started_at: "", ended_at: "" }]
-                ).map((group, index) => (
-                  <div
-                    key={index}
-                    className="space-y-4 p-4 border border-gray-700 rounded-lg"
-                  >
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-white font-medium">
-                        Experience #{index + 1}
-                      </h4>
-                      {index > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const newGroups = [
-                              ...(formData.experiences || []),
-                            ];
-                            newGroups.splice(index, 1);
-                            setFormData({
-                              ...formData,
-                              experiences: newGroups.length
-                                ? newGroups
-                                : undefined,
-                            });
+                            if (touched.experienceList) {
+                              const error = validateField(
+                                "experienceList",
+                                newGroups.length ? newGroups : []
+                              );
+                              setErrors({ ...errors, experienceList: error });
+                            }
                           }}
                           className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
                         >
@@ -1034,42 +1034,60 @@ const Onboarding = () => {
                       <div>
                         <Label className="text-white">Job Role</Label>
                         <Input
-                          value={(group as { job_role: string }).job_role || ""}
+                          value={(group as { jobTitle: string }).jobTitle || ""}
                           onChange={(e) => {
                             const newGroups = [
-                              ...(formData.experiences || []),
+                              ...(formData.experienceList || []),
                             ];
                             newGroups[index] = {
                               ...newGroups[index],
-                              job_role: e.target.value,
+                              jobTitle: e.target.value,
                             };
                             setFormData({
                               ...formData,
-                              experiences: newGroups,
+                              experienceList: newGroups,
                             });
                           }}
                           placeholder="e.g. Software Engineer"
+                          onBlur={() => {
+                            if (touched.experienceList) {
+                              const error = validateField(
+                                "experienceList",
+                                formData.experienceList
+                              );
+                              setErrors({ ...errors, experienceList: error });
+                            }
+                          }}
                         />
                       </div>
 
                       <div>
                         <Label className="text-white">Company</Label>
                         <Input
-                          value={group.company || ""}
+                          value={group.companyName || ""}
                           onChange={(e) => {
                             const newGroups = [
-                              ...(formData.experiences || []),
+                              ...(formData.experienceList || []),
                             ];
                             newGroups[index] = {
                               ...newGroups[index],
-                              company: e.target.value,
+                              companyName: e.target.value,
                             };
                             setFormData({
                               ...formData,
-                              experiences: newGroups,
+                              experienceList: newGroups,
                             });
                           }}
                           placeholder="e.g. Google"
+                          onBlur={() => {
+                            if (touched.experienceList) {
+                              const error = validateField(
+                                "experienceList",
+                                formData.experienceList
+                              );
+                              setErrors({ ...errors, experienceList: error });
+                            }
+                          }}
                         />
                       </div>
 
@@ -1077,19 +1095,28 @@ const Onboarding = () => {
                         <Label className="text-white">Started At</Label>
                         <Input
                           type="date"
-                          value={group.started_at || ""}
+                          value={group.startedAt || ""}
                           onChange={(e) => {
                             const newGroups = [
-                              ...(formData.experiences || []),
+                              ...(formData.experienceList || []),
                             ];
                             newGroups[index] = {
                               ...newGroups[index],
-                              started_at: e.target.value,
+                              startedAt: e.target.value,
                             };
                             setFormData({
                               ...formData,
-                              experiences: newGroups,
+                              experienceList: newGroups,
                             });
+                          }}
+                          onBlur={() => {
+                            if (touched.experienceList) {
+                              const error = validateField(
+                                "experienceList",
+                                formData.experienceList
+                              );
+                              setErrors({ ...errors, experienceList: error });
+                            }
                           }}
                         />
                       </div>
@@ -1098,19 +1125,28 @@ const Onboarding = () => {
                         <Label className="text-white">End At</Label>
                         <Input
                           type="date"
-                          value={group.ended_at || ""}
+                          value={group.endedAt || ""}
                           onChange={(e) => {
                             const newGroups = [
-                              ...(formData.experiences || []),
+                              ...(formData.experienceList || []),
                             ];
                             newGroups[index] = {
                               ...newGroups[index],
-                              ended_at: e.target.value,
+                              endedAt: e.target.value,
                             };
                             setFormData({
                               ...formData,
-                              experiences: newGroups,
+                              experienceList: newGroups,
                             });
+                          }}
+                          onBlur={() => {
+                            if (touched.experienceList) {
+                              const error = validateField(
+                                "experienceList",
+                                formData.experienceList
+                              );
+                              setErrors({ ...errors, experienceList: error });
+                            }
                           }}
                         />
                       </div>
@@ -1123,9 +1159,14 @@ const Onboarding = () => {
                   onClick={() => {
                     setFormData({
                       ...formData,
-                      experiences: [
-                        ...(formData.experiences || []),
-                        { job_role: "", company: "", started_at: "", ended_at: "" },
+                      experienceList: [
+                        ...(formData.experienceList || []),
+                        {
+                          jobTitle: "",
+                          companyName: "",
+                          startedAt: "",
+                          endedAt: "",
+                        },
                       ],
                     });
                   }}
@@ -1138,81 +1179,469 @@ const Onboarding = () => {
             </div>
           </div>
         );
-
       case 5:
-        // if (formData.role === "JOB_SEEKER") {
-        //   return (
-        //     <div className="space-y-6">
-        //       <div className="text-center mb-8">
-        //         <Target className="h-12 w-12 text-orange-400 mx-auto mb-4" />
-        //         <h2 className="text-3xl font-bold text-white mb-2">
-        //           Career Goals
-        //         </h2>
-        //         <p className="text-gray-300">Define your career aspirations</p>
-        //       </div>
-        //       <InputWithLabel
-        //         id="targetRole"
-        //         label="Target Role"
-        //         value={formData.targetRole}
-        //         onChange={(e) =>
-        //           setFormData({ ...formData, targetRole: e.target.value })
-        //         }
-        //         error={errors.targetRole}
-        //         onBlur={() => handleBlur("targetRole")}
-        //       />
-        //       <div className="mt-6">
-        //         <Label className="text-white">Salary Expectation</Label>
-        //         <SelectDropdown
-        //           value={formData.salaryExpectation}
-        //           setValue={(value) =>
-        //             setFormData({ ...formData, salaryExpectation: value })
-        //           }
-        //           options={["30-50k", "50-75k", "75-100k", "100-150k", "150k+"]}
-        //           error={errors.salaryExpectation}
-        //           onBlur={() => handleBlur("salaryExpectation")}
-        //         />
-        //       </div>
-        //     </div>
-        //   );
-        // }
-        if (formData.role === "COACH") {
-          return (
+        return (
+          <>
             <div className="space-y-6">
-              <div className="text-center mb-8">
-                <MessageCircle className="h-12 w-12 text-orange-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  About You as a Coach
-                </h2>
-                <p className="text-gray-300">
-                  Describe your coaching approach and expertise
+              <div className="text-center mb-8 mt-3">
+                {formData.role === "JOB_SEEKER" && (
+                  <>
+                    <Briefcase className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+                    <h2 className="text-3xl font-bold text-white mb-2">
+                      Your Industry & Job Preferences
+                    </h2>
+                    <p className="text-gray-300">
+                      Add the industries you’re interested in and the job roles
+                      you’re seeking.
+                    </p>
+                  </>
+                )}
+                {formData.role === "COACH" && (
+                  <>
+                    <MessageCircle className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+                    <h2 className="text-3xl font-bold text-white mb-2">
+                      Your Industries & Coaching Profile
+                    </h2>
+                    <p className="text-gray-300">
+                      Add the industries you can teach and tell us a bit about
+                      your coaching approach and expertise.
+                    </p>
+                  </>
+                )}
+              </div>
+               {errors.industryList && (
+              <div className="p-3 bg-red-500/10 border border-red-500 rounded-md">
+                <p className="text-red-500 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.industryList}
                 </p>
               </div>
-              <Label htmlFor="coachDescription" className="text-white">
-                Description (Users will see this)
-              </Label>
-              <Textarea
-                id="coachDescription"
-                value={formData.description || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Write a brief description about yourself and your coaching style..."
-                rows={4}
-                className={`mt-1 ${errors.description ? "border-red-500" : ""}`}
-                //onBlur={() => handleBlur("description")}
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.description}
-                </p>
-              )}
-              <p className="text-sm text-gray-400 mt-1">
-                {formData.description?.length || 0}/50 characters (minimum)
-              </p>
+            )}
+
+              <div className="space-y-4">
+                <Label className="text-white text-lg">
+                  Industries & Job Roles
+                </Label>
+
+                {(formData.industryList && formData.industryList.length > 0
+                  ? formData.industryList
+                  : [
+                      {
+                        industryName: "",
+                        jobRoleDtos: [
+                          {
+                            jobRoleName: "",
+                            minSalary: 0,
+                            maxSalary: 0,
+                            hourlyConsultingSalary: 0,
+                          },
+                        ],
+                      },
+                    ]
+                ).map((industry, industryIndex) => (
+                  <div
+                    key={industryIndex}
+                    className="space-y-4 p-4 border border-gray-700 rounded-lg"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-white font-medium">
+                        Industry {industryIndex + 1}
+                      </h4>
+                      {industryIndex > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newIndustries = [
+                              ...(formData.industryList || []),
+                            ];
+                            newIndustries.splice(industryIndex, 1);
+                            setFormData({
+                              ...formData,
+                              industryList: newIndustries.length
+                                ? newIndustries
+                                : [],
+                            });
+                          }}
+                          className="text-red-500 hover:bg-red-500/10 p-2 h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <Label className="text-white">Industry Name</Label>
+                        <Input
+                          value={industry.industryName || ""}
+                          onChange={(e) => {
+                            const newIndustries = [
+                              ...(formData.industryList || []),
+                            ];
+                            newIndustries[industryIndex] = {
+                              ...newIndustries[industryIndex],
+                              industryName: e.target.value,
+                            };
+                            setFormData({
+                              ...formData,
+                              industryList: newIndustries,
+                            });
+                          }}
+                          placeholder="e.g. Technology, Healthcare, Finance"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-white">Job Roles</Label>
+
+                        {(industry.jobRoleDtos &&
+                        industry.jobRoleDtos.length > 0
+                          ? industry.jobRoleDtos
+                          : [
+                              {
+                                jobRoleName: "",
+                                minSalary: 0,
+                                maxSalary: 0,
+                                hourlyConsultingSalary: 0,
+                              },
+                            ]
+                        ).map((jobRole, jobRoleIndex) => (
+                          <div
+                            key={jobRoleIndex}
+                            className="p-3 border border-gray-600 rounded-md"
+                          >
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-gray-300 text-sm">
+                                Job Role {jobRoleIndex + 1}
+                              </span>
+                              {jobRoleIndex > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newIndustries = [
+                                      ...(formData.industryList || []),
+                                    ];
+                                    const newJobRoles = [
+                                      ...newIndustries[industryIndex]
+                                        .jobRoleDtos,
+                                    ];
+                                    newJobRoles.splice(jobRoleIndex, 1);
+
+                                    newIndustries[industryIndex] = {
+                                      ...newIndustries[industryIndex],
+                                      jobRoleDtos: newJobRoles,
+                                    };
+
+                                    setFormData({
+                                      ...formData,
+                                      industryList: newIndustries,
+                                    });
+                                  }}
+                                  className="text-red-500 hover:bg-red-500/10 p-1 h-6 w-6"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-white text-sm">
+                                  Job Role Name
+                                </Label>
+                                <Input
+                                  value={jobRole.jobRoleName || ""}
+                                  onChange={(e) => {
+                                    const newIndustries = [
+                                      ...(formData.industryList || []),
+                                    ];
+                                    const newJobRoles = [
+                                      ...newIndustries[industryIndex]
+                                        .jobRoleDtos,
+                                    ];
+
+                                    newJobRoles[jobRoleIndex] = {
+                                      ...newJobRoles[jobRoleIndex],
+                                      jobRoleName: e.target.value,
+                                    };
+
+                                    newIndustries[industryIndex] = {
+                                      ...newIndustries[industryIndex],
+                                      jobRoleDtos: newJobRoles,
+                                    };
+
+                                    setFormData({
+                                      ...formData,
+                                      industryList: newIndustries,
+                                    });
+                                  }}
+                                  placeholder="e.g. Software Developer"
+                                  className="text-sm"
+                                  onBlur={() => {
+                                    if (touched.industryList) {
+                                      const error = validateField(
+                                        "industryList",
+                                        formData.industryList
+                                      );
+                                      setErrors({
+                                        ...errors,
+                                        industryList: error,
+                                      });
+                                    }
+                                  }}
+                                />
+                              </div>
+
+                              <div>
+                                <Label className="text-white text-sm">
+                                  Min Salary ($)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  value={jobRole.minSalary || 0}
+                                  onChange={(e) => {
+                                    const newIndustries = [
+                                      ...(formData.industryList || []),
+                                    ];
+                                    const newJobRoles = [
+                                      ...newIndustries[industryIndex]
+                                        .jobRoleDtos,
+                                    ];
+
+                                    newJobRoles[jobRoleIndex] = {
+                                      ...newJobRoles[jobRoleIndex],
+                                      minSalary: Number(e.target.value),
+                                    };
+
+                                    newIndustries[industryIndex] = {
+                                      ...newIndustries[industryIndex],
+                                      jobRoleDtos: newJobRoles,
+                                    };
+
+                                    setFormData({
+                                      ...formData,
+                                      industryList: newIndustries,
+                                    });
+                                  }}
+                                  className="text-sm"
+                                   onBlur={() => {
+                                    if (touched.industryList) {
+                                      const error = validateField(
+                                        "industryList",
+                                        formData.industryList
+                                      );
+                                      setErrors({
+                                        ...errors,
+                                        industryList: error,
+                                      });
+                                    }
+                                  }}
+                                />
+                              </div>
+
+                              <div>
+                                <Label className="text-white text-sm">
+                                  Max Salary ($)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  value={jobRole.maxSalary || 0}
+                                  onChange={(e) => {
+                                    const newIndustries = [
+                                      ...(formData.industryList || []),
+                                    ];
+                                    const newJobRoles = [
+                                      ...newIndustries[industryIndex]
+                                        .jobRoleDtos,
+                                    ];
+
+                                    newJobRoles[jobRoleIndex] = {
+                                      ...newJobRoles[jobRoleIndex],
+                                      maxSalary: Number(e.target.value),
+                                    };
+
+                                    newIndustries[industryIndex] = {
+                                      ...newIndustries[industryIndex],
+                                      jobRoleDtos: newJobRoles,
+                                    };
+
+                                    setFormData({
+                                      ...formData,
+                                      industryList: newIndustries,
+                                    });
+                                  }}
+                                  className="text-sm"
+                                   onBlur={() => {
+                                    if (touched.industryList) {
+                                      const error = validateField(
+                                        "industryList",
+                                        formData.industryList
+                                      );
+                                      setErrors({
+                                        ...errors,
+                                        industryList: error,
+                                      });
+                                    }
+                                  }}
+                                />
+                              </div>
+
+                              {formData.role === "COACH" && (
+                                <div>
+                                  <Label className="text-white text-sm">
+                                    Hourly Rate ($)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    value={jobRole.hourlyConsultingSalary || 0}
+                                    onChange={(e) => {
+                                      const newIndustries = [
+                                        ...(formData.industryList || []),
+                                      ];
+                                      const newJobRoles = [
+                                        ...newIndustries[industryIndex]
+                                          .jobRoleDtos,
+                                      ];
+
+                                      newJobRoles[jobRoleIndex] = {
+                                        ...newJobRoles[jobRoleIndex],
+                                        hourlyConsultingSalary: Number(
+                                          e.target.value
+                                        ),
+                                      };
+
+                                      newIndustries[industryIndex] = {
+                                        ...newIndustries[industryIndex],
+                                        jobRoleDtos: newJobRoles,
+                                      };
+
+                                      setFormData({
+                                        ...formData,
+                                        industryList: newIndustries,
+                                      });
+                                    }}
+                                    className="text-sm"
+                                     onBlur={() => {
+                                    if (touched.industryList) {
+                                      const error = validateField(
+                                        "industryList",
+                                        formData.industryList
+                                      );
+                                      setErrors({
+                                        ...errors,
+                                        industryList: error,
+                                      });
+                                    }
+                                  }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newIndustries = [
+                              ...(formData.industryList || []),
+                            ];
+                            const newJobRoles = [
+                              ...newIndustries[industryIndex].jobRoleDtos,
+                            ];
+
+                            newJobRoles.push({
+                              jobRoleName: "",
+                              minSalary: 0,
+                              maxSalary: 0,
+                              hourlyConsultingSalary: 0,
+                            });
+
+                            newIndustries[industryIndex] = {
+                              ...newIndustries[industryIndex],
+                              jobRoleDtos: newJobRoles,
+                            };
+
+                            setFormData({
+                              ...formData,
+                              industryList: newIndustries,
+                            });
+                          }}
+                          className="text-purple-500 border-purple-500/50 hover:bg-purple-500/10 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Job Role
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      industryList: [
+                        ...(formData.industryList || []),
+                        {
+                          industryName: "",
+                          jobRoleDtos: [
+                            {
+                              jobRoleName: "",
+                              minSalary: 0,
+                              maxSalary: 0,
+                              hourlyConsultingSalary: 0,
+                            },
+                          ],
+                        },
+                      ],
+                    });
+                  }}
+                  className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10 w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another Industry
+                </Button>
+              </div>
             </div>
-          );
-        }
+
+            {formData.role === "COACH" ? (
+              <>
+                <div className="space-y-6 mt-10">
+                  <Label htmlFor="coachDescription" className="text-white">
+                    Description (Users will see this)
+                  </Label>
+                  <Textarea
+                    id="coachDescription"
+                    value={formData.description || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    placeholder="Write a brief description about yourself and your coaching style..."
+                    rows={4}
+                    className={`mt-1 ${
+                      errors.description ? "border-red-500" : ""
+                    }`}
+                    onBlur={() => handleBlur("description")}
+                  />
+                  {errors.description && (
+                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {errors.description}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-400 mt-1">
+                    {formData.description?.length || 0}/50 characters (minimum)
+                  </p>
+                </div>
+              </>
+            ) : null}
+          </>
+        );
     }
   };
 

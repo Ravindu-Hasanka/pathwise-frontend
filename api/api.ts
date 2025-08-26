@@ -3,11 +3,11 @@ import axios from "axios";
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
 
 export const createJobSeeker = (data: any) => {
-  return axios.post(`${API_BASE}/onboarding/jobseeker`, data);
+  return axios.post(`${API_BASE}/auth/register`, data);
 };
 
 export const createCoach = (data: any) => {
-  return axios.post(`${API_BASE}/onboarding/coach`, data);
+  return axios.post(`${API_BASE}/auth/register`, data);
 };
 
 export const retrieveUser = (id: number) => {
