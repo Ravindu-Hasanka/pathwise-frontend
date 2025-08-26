@@ -7,23 +7,24 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Mail } from "lucide-react";
+import { Content } from "vaul";
 
-const userId = 1; // Replace with actual user id logic
+const userId = 1;
 
-type Message = { sender: string; text: string; time: string };
+type Message = { senderId: number, senderName: string; content: string; time: string };
 type Connection = {
     connectionId: number;
-    userId: string;
-    userName: string;
+    requestedUserId: string;
+    requestedUserName: string;
     jobRole: string;
-    email: boolean;
-    requestedAt: boolean;
+    email: string;
+    requestedAt: string;
     avatar?: string;
     mutual?: number;
     online?: boolean;
 };
 
-const Messages: React.FC = () => {
+const Messages = () => {
     const [connections, setConnections] = useState<Connection[]>([]);
     const [activeChat, setActiveChat] = useState<string | null>(null);
     const [messages, setMessages] = useState<Record<string, Message[]>>({});
@@ -41,14 +42,15 @@ const Messages: React.FC = () => {
                 client.subscribe(`/user/${userId}/queue/messages`, (msg) => {
                     const message = JSON.parse(msg.body);
                     setMessages((prev) => {
-                        const chatName = message.sender.name;
+                        const chatName = message.senderName;
                         return {
                             ...prev,
                             [chatName]: [
                                 ...(prev[chatName] || []),
                                 {
-                                    sender: message.sender.name,
-                                    text: message.content,
+                                    senderId: message.senderId,
+                                    senderName: message.senderName,
+                                    content: message.content,
                                     time: new Date(message.timestamp).toLocaleTimeString([], {
                                         hour: "2-digit",
                                         minute: "2-digit",
@@ -62,21 +64,24 @@ const Messages: React.FC = () => {
         });
         client.activate();
         setStompClient(client);
-        return () => client.deactivate();
+        return () => {
+            client.deactivate();
+        };
     }, []);
 
     useEffect(() => {
         if (activeChat) {
-            const receiver = connections.find((c) => c.userName === activeChat);
+            const receiver = connections.find((c) => c.requestedUserName === activeChat);
             if (!receiver) return;
             axios
-                .get(`http://localhost:8080/messages/${userId}/${receiver.connectionId}`)
+                .get(`http://localhost:8080/messages/${userId}/${receiver.requestedUserId}`)
                 .then((res) => {
                     setMessages((prev) => ({
                         ...prev,
                         [activeChat]: res.data.map((msg: any) => ({
-                            sender: msg.sender.name,
-                            text: msg.content,
+                            senderId: msg.senderId,
+                            senderName: msg.senderName,
+                            content: msg.content,
                             time: new Date(msg.timestamp).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
@@ -95,11 +100,11 @@ const Messages: React.FC = () => {
 
     const handleSendMessage = () => {
         if (message.trim() && activeChat && stompClient && stompClient.connected) {
-            const receiver = connections.find((c) => c.userName === activeChat);
+            const receiver = connections.find((c) => c.requestedUserName === activeChat);
             if (!receiver) return;
             const msgObj = {
-                sender: { id: userId, name: "You" }, // Replace with actual user info
-                receiver: { id: receiver.connectionId, name: receiver.userName },
+                senderId: userId,
+                receiverId: receiver.requestedUserId,
                 content: message,
                 timestamp: new Date().toISOString(),
             };
@@ -112,8 +117,9 @@ const Messages: React.FC = () => {
                 [activeChat]: [
                     ...(prev[activeChat] || []),
                     {
-                        sender: "You",
-                        text: message,
+                        senderId: userId,
+                        senderName: "You",
+                        content: message,
                         time: new Date().toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -137,26 +143,26 @@ const Messages: React.FC = () => {
                         <div className="space-y-2">
                             {connections.map((conn) => (
                                 <div
-                                    key={conn.userName}
-                                    className={`p-3 rounded-lg cursor-pointer ${activeChat === conn.userName
+                                    key={conn.requestedUserName}
+                                    className={`p-3 rounded-lg cursor-pointer ${activeChat === conn.requestedUserName
                                         ? "bg-slate-700/50 border border-white/10"
                                         : "hover:bg-slate-700/30"
                                         }`}
-                                    onClick={() => setActiveChat(conn.userName)}
+                                    onClick={() => setActiveChat(conn.requestedUserName)}
                                 >
                                     <div className="flex items-center space-x-3">
                                         <Avatar>
                                             <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600">
-                                                {conn.userName
+                                                {conn.requestedUserName
                                                     .split(" ")
                                                     .map((n) => n[0])
                                                     .join("")}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <h4 className="text-white font-medium">{conn.userName}</h4>
+                                            <h4 className="text-white font-medium">{conn.requestedUserName}</h4>
                                             <p className="text-gray-300 text-sm truncate">
-                                                {(messages[conn.userName]?.slice(-1)[0]?.text) || ""}
+                                                {(messages[conn.requestedUserName]?.slice(-1)[0]?.content) || ""}
                                             </p>
                                         </div>
                                     </div>
@@ -194,22 +200,17 @@ const Messages: React.FC = () => {
                                     {messages[activeChat]?.map((msg, index) => (
                                         <div
                                             key={index}
-                                            className={`flex ${msg.sender === "You"
-                                                ? "justify-end"
-                                                : "justify-start"
-                                                }`}
+                                            className={`flex ${msg.senderId === userId ? "justify-end" : "justify-start"}`}
                                         >
                                             <div
-                                                className={`max-w-[80%] p-3 rounded-lg ${msg.sender === "You"
+                                                className={`max-w-[80%] p-3 rounded-lg ${msg.senderId === userId
                                                     ? "bg-gradient-to-r from-blue-500 to-purple-600"
                                                     : "bg-slate-700/50"
                                                     }`}
                                             >
-                                                <p className="text-white">{msg.text}</p>
+                                                <p className="text-white">{msg.content}</p>
                                                 <p
-                                                    className={`text-xs mt-1 ${msg.sender === "You"
-                                                        ? "text-blue-200"
-                                                        : "text-gray-400"
+                                                    className={`text-xs mt-1 ${msg.senderId === userId ? "text-blue-200" : "text-gray-400"
                                                         }`}
                                                 >
                                                     {msg.time}
