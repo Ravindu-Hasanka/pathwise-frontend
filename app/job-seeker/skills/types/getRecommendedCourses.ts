@@ -1,25 +1,23 @@
-type SkillLevel = "beginner" | "intermediate" | "expert";
-
-interface Skill {
+// Skill progress type (current vs target)
+export type SkillData = {
   skill: string;
-  level: SkillLevel;
-}
-
-interface Course {
-  course_link: string;
-  expected_skills: string[];
-}
-
-interface JobRole {
-  skills: Skill[];
-  courses: Course[];
-  jobRoleName: string;
-}
-
-type Industries = {
-  [industryName: string]: JobRole[];
+  current: number;
+  target: number;
 };
 
-export interface getRecommendedCoursesRootType {
-  [industry: string]: JobRole[] | any[];
-}
+// Recommended resource type
+export type RecommendedResource = {
+  title: string;
+  type: "Course" | "Book" | "Free Course" | "Certification" | string; // extend as needed
+  provider: string;
+  duration: string; // could refine to number + unit if you want
+  link: string;
+  skill: string;
+};
+
+// Progress data type (simplified)
+export type ProgressData = {
+  skill: string;
+  progress: number;
+  target: number;
+};

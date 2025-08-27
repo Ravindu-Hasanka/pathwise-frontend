@@ -23,5 +23,7 @@ export const updateCoach = (id: number, data: any) => {
 };
 
 export const getRecommendedCourses = (jobSeekerId: number) => {
-  return axios.get(`${API_BASE}/test/skills/${jobSeekerId}`);
+  const response = axios.get(`${API_BASE}/skills/recommended-resources/${jobSeekerId}`);
+  console.log("API Response:", response);
+  return response;  
 }
