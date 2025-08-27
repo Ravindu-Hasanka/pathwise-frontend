@@ -27,3 +27,7 @@ export const getRecommendedCourses = (jobSeekerId: number) => {
   console.log("API Response:", response);
   return response;  
 }
+
+export const getRecommendedJobs = (jobSeekerId: number) => {
+  return axios.get(`${API_BASE}/jobs/recommended-jobs/${jobSeekerId}`);
+}
