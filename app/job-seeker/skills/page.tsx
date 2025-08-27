@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -25,12 +25,19 @@ import {
   Target,
 } from "lucide-react";
 import Navbar from "../../../components/ui/navbar";
+import { getRecommendedCourses } from "@/api/api";
+import { ProgressData, RecommendedResource, SkillData } from "./types/getRecommendedCourses";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { set } from "zod";
 
 export default function SkillGapAnalysis() {
   const [activeTab, setActiveTab] = useState("analysis");
+  const [skillData, setSkillData] = useState<SkillData[]>([]);
+  const [recommendedResources, setRecommendedResources] = useState<RecommendedResource[]>([]);
+  const [isOpenRecommendedResourceModal, setIsOpenRecommendedResourceModal] = useState(false);
 
   // Sample data - in a real app this would come from user profile and backend
-  const skillData = [
+  const skillDataSample: SkillData[] = [
     { skill: "JavaScript", current: 75, target: 90 },
     { skill: "React", current: 65, target: 85 },
     { skill: "Node.js", current: 60, target: 80 },
@@ -39,7 +46,7 @@ export default function SkillGapAnalysis() {
     { skill: "AWS", current: 30, target: 65 },
   ];
 
-  const recommendedResources = [
+  const recommendedResourcesSample: RecommendedResource[] = [
     {
       title: "Advanced React Patterns",
       type: "Course",
@@ -74,16 +81,30 @@ export default function SkillGapAnalysis() {
     },
   ];
 
-  const progressData = [
+  const progressData: ProgressData[] = [
     { skill: "JavaScript", progress: 75, target: 90 },
     { skill: "React", progress: 65, target: 85 },
     { skill: "Node.js", progress: 60, target: 80 },
   ];
 
+  useEffect(() => {
+    // Fetch user skill data and recommended resources from backend here
+    const fetchData = async () => {
+      const response = await getRecommendedCourses(1);
+      const data: RecommendedResource[] = response.data;
+      console.log(data);
+
+      setSkillData(skillDataSample);
+      setRecommendedResources(data);
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Navbar currentPage="skills" />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Skill Gap Analysis</h1>
@@ -173,26 +194,24 @@ export default function SkillGapAnalysis() {
                           <span className="text-white font-medium">{skill.skill}</span>
                           <Badge
                             variant="outline"
-                            className={`${
-                              index === 0
-                                ? "border-red-500/30 text-red-400"
-                                : index === 1
+                            className={`${index === 0
+                              ? "border-red-500/30 text-red-400"
+                              : index === 1
                                 ? "border-orange-500/30 text-orange-400"
                                 : "border-yellow-500/30 text-yellow-400"
-                            }`}
+                              }`}
                           >
                             Gap: {skill.target - skill.current}%
                           </Badge>
                         </div>
                         <Progress
                           value={(skill.current / skill.target) * 100}
-                          className={`h-2 ${
-                            index === 0
-                              ? "bg-red-500"
-                              : index === 1
+                          className={`h-2 ${index === 0
+                            ? "bg-red-500"
+                            : index === 1
                               ? "bg-orange-500"
                               : "bg-yellow-500"
-                          }`}
+                            }`}
                         />
                         <div className="flex justify-between text-xs text-gray-400">
                           <span>Current: {skill.current}%</span>
@@ -237,8 +256,8 @@ export default function SkillGapAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendedResources.map((resource, index) => (
-                  <Card key={index} className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors">
+                {recommendedResources.slice(0, 6).map((resource, index) => (
+                  <Card key={index} className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors pt-10">
                     <CardContent className="p-4">
                       <div className="flex justify-between">
                         <div>
@@ -253,9 +272,18 @@ export default function SkillGapAnalysis() {
                               {resource.duration}
                             </span>
                           </div>
-                          <Badge variant="outline" className="mt-2 border-blue-500/30 text-blue-400">
-                            {resource.skill}
-                          </Badge>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {resource.skill.split(",").map((skill, idx) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="border-blue-500/30 text-blue-400"
+                              >
+                                {skill.trim()}
+                              </Badge>
+                            ))}
+                          </div>
+
                         </div>
                         <Button
                           variant="ghost"
@@ -274,7 +302,7 @@ export default function SkillGapAnalysis() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-center border-t border-white/10 pt-4">
-              <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10">
+              <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10" onClick={() => setIsOpenRecommendedResourceModal(true)} >
                 View All Resources
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
@@ -316,6 +344,64 @@ export default function SkillGapAnalysis() {
               </Button>
             </CardFooter>
           </Card>
+        </div>
+
+        <div>
+          <Dialog open={isOpenRecommendedResourceModal} onOpenChange={setIsOpenRecommendedResourceModal}>
+            <DialogContent className="w-full max-h-[80vh] overflow-y-auto rounded-2xl shadow-xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">
+                  Recommended Resources
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                {recommendedResources.map((resource, index) => (
+                  <Card key={index} className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors pt-10">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <h4 className="text-white font-medium">{resource.title}</h4>
+                          <div className="flex items-center text-sm text-gray-400 mt-1 space-x-4">
+                            <span className="flex items-center">
+                              <Award className="h-4 w-4 mr-1" />
+                              {resource.type}
+                            </span>
+                            <span className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {resource.duration}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {resource.skill.split(",").map((skill, idx) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="border-blue-500/30 text-blue-400"
+                              >
+                                {skill.trim()}
+                              </Badge>
+                            ))}
+                          </div>
+
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-400 hover:bg-blue-400/10"
+                          asChild
+                        >
+                          <a href={resource.link} target="_blank" rel="noopener noreferrer">
+                            <LinkIcon className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
