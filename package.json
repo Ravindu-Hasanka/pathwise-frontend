@@ -59,6 +59,7 @@
     "recharts": "^2.15.3",
     "sockjs-client": "^1.6.1",
     "sonner": "^2.0.5",
+    "supports-color": "^10.2.0",
     "sweetalert2": "^11.22.5",
     "sweetalert2-react-content": "^5.1.0",
     "vaul": "^1.1.2",

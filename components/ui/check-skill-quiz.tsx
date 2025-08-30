@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/ui/navbar";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { updateSkillLevel } from "@/api/api";
 import Swal from "sweetalert2";
@@ -42,9 +42,9 @@ export default function QuizPage() {
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
 
-  const params = useParams();
-  const skill = params.skill;     
-  const skillId = params.skillId;
+  const searchParams = useSearchParams();
+  const skill = searchParams.get("skill");
+  const skillId = searchParams.get("skillId");
 
   const currentQuestion = quizQuestions[currentQuestionIndex];
 
@@ -57,17 +57,17 @@ export default function QuizPage() {
     if (currentQuestionIndex < quizQuestions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-        const response = await updateSkillLevel(Number(skillId), score);
-        if(response.status === 200) {
-            console.log("Skill level updated successfully");
-            setIsQuizFinished(true);
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to update skill level. Please try again later.',
-            });
-        }
+      const response = await updateSkillLevel(Number(skillId), score);
+      if (response.status === 200) {
+        console.log("Skill level updated successfully");
+        setIsQuizFinished(true);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to update skill level. Please try again later.',
+        });
+      }
     }
   };
 
@@ -87,6 +87,9 @@ export default function QuizPage() {
       setIsGeneratingQuiz(true);
 
       try {
+        console.log("Gemini API Key found, generating quiz...");
+        console.log("Skill:", skill);
+        console.log("Skill ID:", skillId);
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const model = genAI.getGenerativeModel({
           model: "gemini-1.5-flash",
@@ -136,9 +139,8 @@ export default function QuizPage() {
           quizQuestions.length > 0 ? (
             <Card className="bg-slate-800/50 border-white/10">
               <CardHeader>
-                <CardTitle className="text-white">{`Question ${
-                  currentQuestionIndex + 1
-                }`}</CardTitle>
+                <CardTitle className="text-white">{`Question ${currentQuestionIndex + 1
+                  }`}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-300 text-lg mb-4">{currentQuestion.question}</p>
@@ -147,9 +149,8 @@ export default function QuizPage() {
                     <Button
                       key={index}
                       variant={selectedOption === index ? "default" : "outline"}
-                      className={`w-full text-left text-gray-200 border-white/20 hover:bg-white/10 ${
-                        selectedOption === index ? "bg-purple-600/30" : ""
-                      }`}
+                      className={`w-full text-left text-gray-200 border-white/20 hover:bg-white/10 ${selectedOption === index ? "bg-purple-600/30" : ""
+                        }`}
                       onClick={() => setSelectedOption(index)}
                     >
                       {option}
@@ -192,7 +193,7 @@ export default function QuizPage() {
               <Button
                 className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white"
                 onClick={() => {
-                  window.location.href ="./../job-seeker/skills"
+                  window.location.href = "./../job-seeker/skills"
                 }}
               >
                 Back to Skills
