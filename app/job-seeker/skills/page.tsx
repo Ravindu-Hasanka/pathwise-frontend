@@ -25,10 +25,10 @@ import {
   Target,
 } from "lucide-react";
 import Navbar from "../../../components/ui/navbar";
-import { getRecommendedCourses } from "@/api/api";
+import { getRecommendedCourses, getSkillsByUser } from "@/api/api";
 import { ProgressData, RecommendedResource, SkillData } from "./types/getRecommendedCourses";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { set } from "zod";
+import { getUserIdFromToken } from "@/app/lib/authCookies";
 
 export default function SkillGapAnalysis() {
   const [activeTab, setActiveTab] = useState("analysis");
@@ -38,12 +38,36 @@ export default function SkillGapAnalysis() {
 
   // Sample data - in a real app this would come from user profile and backend
   const skillDataSample: SkillData[] = [
-    { skill: "JavaScript", current: 75, target: 90 },
-    { skill: "React", current: 65, target: 85 },
-    { skill: "Node.js", current: 60, target: 80 },
-    { skill: "TypeScript", current: 50, target: 75 },
-    { skill: "UI/UX Design", current: 40, target: 70 },
-    { skill: "AWS", current: 30, target: 65 },
+    {
+      skillId: 1, name: "JavaScript", level: 75, target: 90,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 2, name: "React", level: 65, target: 85,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 3, name: "Node.js", level: 60, target: 80,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 4, name: "TypeScript", level: 50, target: 75,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 5, name: "UI/UX Design", level: 40, target: 70,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 6, name: "AWS", level: 30, target: 65,
+      updatedAt: "",
+      createdAt: ""
+    },
   ];
 
   const recommendedResourcesSample: RecommendedResource[] = [
@@ -81,24 +105,30 @@ export default function SkillGapAnalysis() {
     },
   ];
 
-  const progressData: ProgressData[] = [
-    { skill: "JavaScript", progress: 75, target: 90 },
-    { skill: "React", progress: 65, target: 85 },
-    { skill: "Node.js", progress: 60, target: 80 },
-  ];
+  const fetchSkillData = async () => {
+    const userId = getUserIdFromToken();
+    console.log("User ID from token:", userId);
+    if (!userId) return;
+    const skillsResponse = await getSkillsByUser(userId);
+      const skillsData = skillsResponse.data;
+      console.log("Skills data:", skillsData);
+      setSkillData(skillsData);
+  }
+
+  const fetchRecommendedResources = async () => {
+    const userId = getUserIdFromToken();
+    console.log("User ID from token:", userId);
+    if (!userId) return;
+    const recommendedCoursesResponse = await getRecommendedCourses(userId);
+      const data: RecommendedResource[] = recommendedCoursesResponse.data;
+      console.log("Recommended resources data:", data);
+      setRecommendedResources(data);
+  }
+
 
   useEffect(() => {
-    // Fetch user skill data and recommended resources from backend here
-    const fetchData = async () => {
-      const response = await getRecommendedCourses(1);
-      const data: RecommendedResource[] = response.data;
-      console.log(data);
-
-      setSkillData(skillDataSample);
-      setRecommendedResources(data);
-    };
-
-    fetchData();
+    fetchSkillData();
+    fetchRecommendedResources();
   }, []);
 
   return (
@@ -106,16 +136,16 @@ export default function SkillGapAnalysis() {
       <Navbar currentPage="skills" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Skill Gap Analysis</h1>
           <p className="text-gray-300 text-lg">
             Identify and bridge the gaps in your skill set to reach your career goals
           </p>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Skill Chart */}
-          <div className="lg:col-span-2">
+          {/* <div className="lg:col-span-2">
             <Card className="bg-slate-800/50 border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
@@ -172,7 +202,7 @@ export default function SkillGapAnalysis() {
                 </Button>
               </CardFooter>
             </Card>
-          </div>
+          </div> */}
 
           {/* Right Column - Summary */}
           <div className="space-y-6">
@@ -186,12 +216,12 @@ export default function SkillGapAnalysis() {
               <CardContent>
                 <div className="space-y-4">
                   {skillData
-                    .sort((a, b) => (b.target - b.current) - (a.target - a.current))
+                    .sort((a, b) => ((b.target || 100) - b.level) - ((a.target || 100) - a.level))
                     .slice(0, 3)
                     .map((skill, index) => (
-                      <div key={skill.skill} className="space-y-2">
+                      <div key={skill.skillId} className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-white font-medium">{skill.skill}</span>
+                          <span className="text-white font-medium">{skill.name}</span>
                           <Badge
                             variant="outline"
                             className={`${index === 0
@@ -201,11 +231,11 @@ export default function SkillGapAnalysis() {
                                 : "border-yellow-500/30 text-yellow-400"
                               }`}
                           >
-                            Gap: {skill.target - skill.current}%
+                            Gap: {(skill.target || 100) - skill.level}%
                           </Badge>
                         </div>
                         <Progress
-                          value={(skill.current / skill.target) * 100}
+                          value={(skill.level / skill.target) * 100}
                           className={`h-2 ${index === 0
                             ? "bg-red-500"
                             : index === 1
@@ -214,8 +244,8 @@ export default function SkillGapAnalysis() {
                             }`}
                         />
                         <div className="flex justify-between text-xs text-gray-400">
-                          <span>Current: {skill.current}%</span>
-                          <span>Target: {skill.target}%</span>
+                          <span>Current: {skill.level}%</span>
+                          <span>Target: {skill.target || 100}%</span>
                         </div>
                       </div>
                     ))}
@@ -311,6 +341,7 @@ export default function SkillGapAnalysis() {
         </div>
 
         {/* Progress Tracking Section */}
+        {/* Progress Tracking Section */}
         <div className="mt-8">
           <Card className="bg-slate-800/50 border-white/10">
             <CardHeader>
@@ -321,30 +352,59 @@ export default function SkillGapAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {progressData.map((skill) => (
-                  <div key={skill.skill} className="space-y-2">
+                {skillData.map((skill) => (
+                  <div key={skill.skillId} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-white font-medium">{skill.skill}</span>
-                      <span className="text-gray-400 text-sm">
-                        {skill.progress}% of {skill.target}%
-                      </span>
+                      <span className="text-white font-medium">{skill.name}</span>
+
+                      {skill.level !== null ? (
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-400 text-sm">
+                            {skill.level}% of {skill.target || 100}%
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-white/20 text-gray-300 hover:bg-white/10"
+                            onClick={() => {
+                              window.location.href = `/check-skill-level?skill=${skill.name}&skillId=${skill.skillId}`;
+                            }}
+                          >
+                            Update Skill Level
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                          onClick={() => {
+                            window.location.href = `/check-skill-level?skill=${skill.name}&skillId=${skill.skillId}`;
+
+                          }}
+                        >
+                          Check Skill Level
+                        </Button>
+                      )}
                     </div>
-                    <Progress value={(skill.progress / skill.target) * 100} className="h-2" />
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Started: Jan 2023</span>
-                      <span>Estimated completion: Aug 2023</span>
-                    </div>
+
+                    {skill.level !== null ? (
+                      <>
+                        <Progress value={(skill.level / (skill.target || 100)) * 100} className="h-2" />
+                        <div className="flex justify-between text-xs text-gray-400">
+                          <span>Started: {skill.createdAt}</span>
+                          {/* <span>Estimated completion: Aug 2023</span> */}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-400">No progress recorded yet</p>
+                    )}
                   </div>
                 ))}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center border-t border-white/10 pt-4">
-              <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10">
-                Update Progress
-              </Button>
-            </CardFooter>
           </Card>
         </div>
+
 
         <div>
           <Dialog open={isOpenRecommendedResourceModal} onOpenChange={setIsOpenRecommendedResourceModal}>

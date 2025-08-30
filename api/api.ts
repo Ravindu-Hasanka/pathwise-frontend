@@ -46,3 +46,12 @@ export const getRecommendedCourses = (jobSeekerId: number) => {
 export const getRecommendedJobs = (jobSeekerId: number) => {
   return api.get(`/jobs/recommended-jobs/${jobSeekerId}`);
 };
+
+export const updateSkillLevel = (skillId:number, level: number) => {
+  const skillUpdateDto = { skillId,level };
+  return api.post(`/skills/update-score`, skillUpdateDto);
+};
+
+export const getSkillsByUser = (userId: number) => {
+  return api.get(`/skills/user-skills/${userId}`);
+}

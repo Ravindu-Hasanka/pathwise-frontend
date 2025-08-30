@@ -1,7 +1,10 @@
 // Skill progress type (current vs target)
 export type SkillData = {
-  skill: string;
-  current: number;
+  skillId: number;
+  name: string;
+  level: number;
+  updatedAt: string;
+  createdAt: string;
   target: number;
 };
 
@@ -17,7 +20,9 @@ export type RecommendedResource = {
 
 // Progress data type (simplified)
 export type ProgressData = {
+  skillId: number;
   skill: string;
-  progress: number;
-  target: number;
+  level: number | null;
+  target: number | null;
+  updatedAt: string | null;
 };
