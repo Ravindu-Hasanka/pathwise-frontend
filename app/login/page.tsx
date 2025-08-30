@@ -7,6 +7,8 @@ import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { loginUser } from "@/api/api";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -24,8 +26,23 @@ export default function LogInPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  const router = useRouter();
+
   const onSubmit = async (data: LoginForm) => {
-    console.log("Login data:", data);
+    try {
+      const res = await loginUser(data);
+      console.log("Login successful:", res.data);
+
+      // Redirect based on role (optional)
+      const { accessToken } = res.data;
+      if (accessToken) {
+        // decode token here if you want role-based redirect
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      console.error("Login failed:", err);
+      alert(err.response?.data?.message || "Invalid email or password");
+    }
   };
 
   return (
