@@ -33,6 +33,8 @@ interface DecodedToken {
   name: string;  // custom claim
   exp: number;   // expiration
   iat: number;   // issued at
+  userId: number; // custom claim
+  email: string; // custom claim
 }
 
 export function getUserFromToken(token: string): DecodedToken | null {
@@ -43,4 +45,42 @@ export function getUserFromToken(token: string): DecodedToken | null {
     console.error("Invalid token", error);
     return null;
   }
+}
+
+export function getUserIdFromToken(): number | null {
+    const cookies = parseCookies();
+    const token = cookies.accessToken;
+    if (!token) return null;
+    const decoded = getUserFromToken(token);
+    if (!decoded) return null;
+    console.log("Decoded token:", decoded);
+    if (decoded.userId) return decoded.userId;
+    return null;
+}
+
+export function getUserRoleFromToken(): string | null {
+    const cookies = parseCookies();
+    const token = cookies.accessToken;
+    if (!token) return null;
+    const decoded = getUserFromToken(token);
+    if (!decoded) return null;
+    return decoded.role;
+}
+
+export function getUserNameFromToken(): string | null {
+    const cookies = parseCookies();
+    const token = cookies.accessToken;
+    if (!token) return null;
+    const decoded = getUserFromToken(token);
+    if (!decoded) return null;
+    return decoded.name;
+}
+
+export function getEmailFromToken(): string | null {
+    const cookies = parseCookies();
+    const token = cookies.accessToken;
+    if (!token) return null;
+    const decoded = getUserFromToken(token);
+    if (!decoded) return null;
+    return decoded.email;
 }
