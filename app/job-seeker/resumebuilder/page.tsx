@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Plus, Upload, Wand2, FileText, Trash2, X } from "lucide-react";
 import Navbar from "../../../components/ui/navbar";
 import jsPDF from "jspdf";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 export default function ResumeBuilder() {
   const [activeTab, setActiveTab] = useState("builder");
@@ -18,8 +20,11 @@ export default function ResumeBuilder() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [customSkill, setCustomSkill] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const MySwal = withReactContent(Swal);
 
-  // Resume form state
+
+   
   const [resumeData, setResumeData] = useState({
     name: "",
     email: "",
@@ -67,42 +72,82 @@ export default function ResumeBuilder() {
   ];
 
   const generateResume = async () => {
-    try {
-      const res = await fetch("/api/resume-builder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeData }),
+  try {
+    
+    MySwal.fire({
+      title: 'Generating PDF...',
+      html: 'Please wait while your resume is being created.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      background: '#1e293b',  
+      color: '#fff',           
+    });
+
+    const res = await fetch("/api/resume-builder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ resumeData }),
+    });
+
+    const data = await res.json();
+
+    if (data.resume) {
+      const resumeHTML = data.resume;
+
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4",
       });
 
-      const data = await res.json();
+      await doc.html(resumeHTML, {
+        x: 40,
+        y: 40,
+        width: 515,
+        windowWidth: 800,
+        callback: function (doc) {
+          const pdfBlob = doc.output("blob");
+          const url = URL.createObjectURL(pdfBlob);
+          setPreviewUrl(url);
 
-      if (data.resume) {
-        const resumeHTML = data.resume;
-
-        const doc = new jsPDF({
-          orientation: "portrait",
-          unit: "pt",
-          format: "a4",
-        });
-
-        await doc.html(resumeHTML, {
-          x: 40,
-          y: 40,
-          width: 515,
-          windowWidth: 800,
-          callback: function (doc) {
-            doc.save("resume.pdf");
-            alert("Resume PDF Generated!");
-          },
-        });
-      } else {
-        alert("Something went wrong.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate resume PDF.");
+          // Close loading and show success
+          Swal.close();
+          MySwal.fire({
+            title: 'Resume Generated!',
+            text: 'Your PDF is ready to preview and download.',
+            icon: 'success',
+            background: '#1e293b',
+            color: '#fff',
+            confirmButtonColor: '#4f46e5',
+          });
+        },
+      });
+    } else {
+      Swal.close();
+      MySwal.fire({
+        title: 'Error',
+        text: 'Something went wrong while generating the resume.',
+        icon: 'error',
+        background: '#1e293b',
+        color: '#fff',
+        confirmButtonColor: '#f87171',
+      });
     }
-  };
+  } catch (err) {
+    Swal.close();
+    console.error(err);
+    MySwal.fire({
+      title: 'Failed',
+      text: 'Failed to generate resume PDF.',
+      icon: 'error',
+      background: '#1e293b',
+      color: '#fff',
+      confirmButtonColor: '#f87171',
+    });
+  }
+};
 
   const addCustomSkill = () => {
     if (customSkill.trim() && !resumeData.skills.includes(customSkill.trim())) {
@@ -569,11 +614,10 @@ export default function ResumeBuilder() {
                                 ? "default"
                                 : "outline"
                             }
-                            className={`${
-                              resumeData.skills.includes(skill)
+                            className={`${resumeData.skills.includes(skill)
                                 ? "bg-blue-500 hover:bg-blue-600"
                                 : "border-white/20 text-gray-300 hover:bg-white/10"
-                            }`}
+                              }`}
                             size="sm"
                             onClick={() => {
                               setResumeData((prev) => ({
@@ -601,6 +645,32 @@ export default function ResumeBuilder() {
                       Generate Resume
                     </Button>
                   </div>
+                  {previewUrl && (
+                    <div className="mt-8">
+                      <h3 className="text-white text-xl mb-2">Resume Preview</h3>
+                      <iframe
+                        src={previewUrl}
+                        width="100%"
+                        height="600px"
+                        className="border border-white/20 rounded-lg"
+                      ></iframe>
+                      <div className="flex justify-end mt-4">
+                        <Button
+                          onClick={() => {
+                            const link = document.createElement("a");
+                            link.href = previewUrl;
+                            link.download = "resume.pdf";
+                            link.click();
+                          }}
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                        >
+                          <Wand2 className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </CardContent>
             </Card>
