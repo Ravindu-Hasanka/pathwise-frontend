@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, Send } from "lucide-react";
 
 type FeedPost = {
     postId: number;
@@ -86,7 +86,7 @@ const FeedTab: React.FC = () => {
             await axios.post("http://localhost:8080/api/posts", {
                 content: postContent,
                 contentType: "DOCUMENT",
-                createdBy: { postId: userId },
+                createdBy: { id: userId },
             });
             setPostContent("");
             fetchActivityFeed();
@@ -314,7 +314,7 @@ const FeedTab: React.FC = () => {
                                                         onClick={() => addComment(post.postId)}
                                                         className="bg-gradient-to-r from-blue-500 to-purple-600"
                                                     >
-                                                        Post
+                                                        <Send className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             </div>

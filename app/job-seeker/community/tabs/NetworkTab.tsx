@@ -9,8 +9,9 @@ import {
 import { Users, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation"; // <-- update this import
 
-const requestedUserId = 1;
+const userId = 1;
 
 type NetworkTabProps = {
     setActiveTab: (tab: "network" | "messages") => void;
@@ -18,6 +19,8 @@ type NetworkTabProps = {
 };
 
 const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) => {
+    const router = useRouter(); // <-- stays the same
+
     type Connection = {
         connectionId: number;
         requestedUserId: string;
@@ -39,20 +42,46 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
         avatar?: string;
         mutual?: number;
     };
+    type SuggestedUser = {
+        userId: string;
+        name: string;
+        email: string;
+        role: string;
+        avatar?: string;
+        mutual?: number;
+    };
+
+
     const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
     const [connections, setConnections] = useState<Connection[]>([]);
+    const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([]);
+    const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>([]);
 
     useEffect(() => {
         fetchConnections();
+        fetchSuggestions();
+        fetchSentRequests();
     }, []);
 
     const fetchConnections = () => {
-        axios.get(`http://localhost:8080/api/network/${requestedUserId}/connections`)
+        axios.get(`http://localhost:8080/api/network/${userId}/connections`)
             .then(res => setConnections(res.data))
             .catch(err => console.error(err));
 
-        axios.get(`http://localhost:8080/api/network/${requestedUserId}/requests`)
+        axios.get(`http://localhost:8080/api/network/${userId}/requests`)
             .then(res => setConnectionRequests(res.data))
+            .catch(err => console.error(err));
+    };
+
+    const fetchSuggestions = () => {
+        axios.get(`http://localhost:8080/api/network/${userId}/suggestions`)
+            .then(res => setSuggestedUsers(res.data))
+            .catch(err => console.error(err));
+    };
+
+    const fetchSentRequests = () => {
+        axios.get(`http://localhost:8080/api/network/${userId}/sentRequests`)
+            .then(res => setSentRequests(res.data))
             .catch(err => console.error(err));
     };
 
@@ -66,8 +95,24 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
             .then(() => fetchConnections());
     };
 
+    const handleSendRequest = (userId: string) => {
+        axios.post(`http://localhost:8080/api/network/request/${userId}/${userId}`)
+            .then(() => fetchSuggestions());
+    };
+
+    const handleConnectSuggestion = (targetId: string) => {
+        axios.post(`http://localhost:8080/api/network/connect/${userId}/${targetId}`)
+            .then(() => {
+                setSuggestedUsers(prev =>
+                    prev.filter(user => user.userId !== targetId)
+                );
+                fetchSentRequests();
+            })
+            .catch(err => console.error(err));
+    };
+
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Connection Requests */}
             <div className="lg:col-span-1">
                 <Card className="bg-slate-800/50 border-white/10">
@@ -197,6 +242,96 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+
+            {/* Suggestions (least attention, last column) */}
+            <div className="lg:col-span-1">
+                <div className="bg-slate-900/30 rounded-lg p-3 mb-2">
+                    <div className="flex items-center mb-2">
+                        <Users className="h-4 w-4 mr-1 text-gray-400" />
+                        <span className="text-gray-400 text-sm font-medium">Suggestions</span>
+                    </div>
+                    <div className="space-y-2">
+                        {suggestedUsers.map((user) => (
+                            <div
+                                key={user.userId}
+                                className="flex items-center justify-between py-2 px-2 rounded hover:bg-slate-800/30 transition"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <Avatar className="h-7 w-7">
+                                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-xs">
+                                            {user.avatar}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <span className="text-gray-300 text-sm">{user.name}</span>
+                                        <span className="block text-gray-500 text-xs">{user.role}</span>
+                                        <span className="block text-gray-500 text-xs">{user.email}</span>
+                                    </div>
+                                </div>
+                                <div className="flex space-x-1">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-blue-400 px-2 py-1"
+                                        onClick={() => handleConnectSuggestion(user.userId)}
+                                    >
+                                        Connect
+                                    </Button>
+
+                                </div>
+                            </div>
+                        ))}
+                        {suggestedUsers.length === 0 && (
+                            <p className="text-gray-500 text-xs text-center py-2">
+                                No suggestions
+                            </p>
+                        )}
+                    </div>
+                    {/* Divider */}
+                    <div className="border-t border-slate-700 my-4"></div>
+                    {/* Sent Requests Section */}
+                    <div>
+                        <div className="flex items-center mb-2">
+                            <Users className="h-4 w-4 mr-1 text-gray-400" />
+                            <span className="text-gray-400 text-sm font-medium">Sent Requests</span>
+                        </div>
+                        <div className="space-y-2">
+                            {sentRequests.map((user) => (
+                                <div
+                                    key={user.requestedUserId}
+                                    className="flex items-center justify-between py-2 px-2 rounded"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <Avatar className="h-7 w-7">
+                                            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-xs">
+                                                {user.avatar}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <span className="text-gray-300 text-sm">{user.requestedUserName}</span>
+                                            <span className="block text-gray-500 text-xs">{user.jobRole}</span>
+                                            <span className="block text-gray-500 text-xs">{user.email}</span>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-white/20 text-gray-300 px-2 py-1 hover:bg-white/10 text-sm"
+                                        onClick={() => router.push(`/job-seeker/profile/${user.requestedUserId}`)}
+                                    >
+                                        View Profile
+                                    </Button>
+                                </div>
+                            ))}
+                            {sentRequests.length === 0 && (
+                                <p className="text-gray-500 text-xs text-center py-2">
+                                    No sent requests
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
