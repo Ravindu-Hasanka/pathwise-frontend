@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThumbsUp, MessageCircle, Share2, Send } from "lucide-react";
+import { getUserIdFromToken } from "@/app/lib/authCookies";
+
 
 type FeedPost = {
     postId: number;
@@ -24,8 +26,7 @@ type FeedPost = {
     };
 
 };
-
-const userId = 1;
+const userId = Number(getUserIdFromToken());
 
 const FeedTab: React.FC = () => {
     const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);

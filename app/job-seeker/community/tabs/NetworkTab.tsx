@@ -9,9 +9,10 @@ import {
 import { Users, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation"; // <-- update this import
+import { useRouter } from "next/navigation";
+import { getUserIdFromToken } from "@/app/lib/authCookies";
 
-const userId = 1;
+const userId = Number(getUserIdFromToken());
 
 type NetworkTabProps = {
     setActiveTab: (tab: "network" | "messages") => void;
@@ -19,7 +20,7 @@ type NetworkTabProps = {
 };
 
 const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) => {
-    const router = useRouter(); // <-- stays the same
+    const router = useRouter();
 
     type Connection = {
         connectionId: number;
