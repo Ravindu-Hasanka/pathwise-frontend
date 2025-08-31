@@ -57,7 +57,7 @@ export default function QuizPage() {
     if (currentQuestionIndex < quizQuestions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      const response = await updateSkillLevel(Number(skillId), score);
+      const response = await updateSkillLevel((Number(skillId)/quizQuestions.length)*100, score);
       if (response.status === 200) {
         console.log("Skill level updated successfully");
         setIsQuizFinished(true);

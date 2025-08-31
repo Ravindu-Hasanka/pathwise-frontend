@@ -110,21 +110,24 @@ export default function SkillGapAnalysis() {
     console.log("User ID from token:", userId);
     if (!userId) return;
     const skillsResponse = await getSkillsByUser(userId);
-      const skillsData = skillsResponse.data;
-      console.log("Skills data:", skillsData);
-      setSkillData(skillsData);
+    const skillsData = skillsResponse.data;
+    console.log("Skills data:", skillsData);
+    setSkillData(skillsData);
   }
 
-  const fetchRecommendedResources = async () => {
-    const userId = getUserIdFromToken();
-    console.log("User ID from token:", userId);
-    if (!userId) return;
+  const [loadingResources, setLoadingResources] = useState(true);
+
+const fetchRecommendedResources = async () => {
+  const userId = getUserIdFromToken();
+  if (!userId) return;
+  try {
     const recommendedCoursesResponse = await getRecommendedCourses(userId);
-      const data: RecommendedResource[] = recommendedCoursesResponse.data;
-      console.log("Recommended resources data:", data);
-      setRecommendedResources(data);
+    const data: RecommendedResource[] = recommendedCoursesResponse.data;
+    setRecommendedResources(data);
+  } finally {
+    setLoadingResources(false);
   }
-
+};
 
   useEffect(() => {
     fetchSkillData();
@@ -285,52 +288,61 @@ export default function SkillGapAnalysis() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendedResources.slice(0, 6).map((resource, index) => (
-                  <Card key={index} className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors pt-10">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between">
-                        <div>
-                          <h4 className="text-white font-medium">{resource.title}</h4>
-                          <div className="flex items-center text-sm text-gray-400 mt-1 space-x-4">
-                            <span className="flex items-center">
-                              <Award className="h-4 w-4 mr-1" />
-                              {resource.type}
-                            </span>
-                            <span className="flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {resource.duration}
-                            </span>
+              {loadingResources ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {recommendedResources.slice(0, 6).map((resource, index) => (
+                    <Card
+                      key={index}
+                      className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors pt-10"
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex justify-between">
+                          <div>
+                            <h4 className="text-white font-medium">{resource.title}</h4>
+                            <div className="flex items-center text-sm text-gray-400 mt-1 space-x-4">
+                              <span className="flex items-center">
+                                <Award className="h-4 w-4 mr-1" />
+                                {resource.type}
+                              </span>
+                              <span className="flex items-center">
+                                <Clock className="h-4 w-4 mr-1" />
+                                {resource.duration}
+                              </span>
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {resource.skill.split(",").map((skill, idx) => (
+                                <Badge
+                                  key={idx}
+                                  variant="outline"
+                                  className="border-blue-500/30 text-blue-400"
+                                >
+                                  {skill.trim()}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {resource.skill.split(",").map((skill, idx) => (
-                              <Badge
-                                key={idx}
-                                variant="outline"
-                                className="border-blue-500/30 text-blue-400"
-                              >
-                                {skill.trim()}
-                              </Badge>
-                            ))}
-                          </div>
-
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-400 hover:bg-blue-400/10"
+                            asChild
+                          >
+                            <a href={resource.link} target="_blank" rel="noopener noreferrer">
+                              <LinkIcon className="h-4 w-4" />
+                            </a>
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-400 hover:bg-blue-400/10"
-                          asChild
-                        >
-                          <a href={resource.link} target="_blank" rel="noopener noreferrer">
-                            <LinkIcon className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
+
             <CardFooter className="flex justify-center border-t border-white/10 pt-4">
               <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10" onClick={() => setIsOpenRecommendedResourceModal(true)} >
                 View All Resources

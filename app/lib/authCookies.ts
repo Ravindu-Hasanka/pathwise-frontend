@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 
 export const setAuthCookies = (accessToken: string, refreshToken: string) => {
   setCookie(null, "accessToken", accessToken, {
-    maxAge: 60 * 60, // 1 hour
+    maxAge: 60 * 60 * 2, // 1 hour
     path: "/", // available everywhere
     secure: process.env.NODE_ENV === "production", 
     sameSite: "strict",
