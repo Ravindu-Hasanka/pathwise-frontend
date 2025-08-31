@@ -9,6 +9,7 @@ import {
 import { Users, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation"; // <-- update this import
 
 const userId = 1;
 
@@ -18,6 +19,8 @@ type NetworkTabProps = {
 };
 
 const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) => {
+    const router = useRouter(); // <-- stays the same
+
     type Connection = {
         connectionId: number;
         requestedUserId: string;
@@ -252,17 +255,19 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
                         {suggestedUsers.map((user) => (
                             <div
                                 key={user.userId}
-                                className="flex items-center space-x-2 py-2 px-2 rounded hover:bg-slate-800/30 transition"
+                                className="flex items-center justify-between py-2 px-2 rounded hover:bg-slate-800/30 transition"
                             >
-                                <Avatar className="h-7 w-7">
-                                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-xs">
-                                        {user.avatar}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                    <span className="text-gray-300 text-sm">{user.name}</span>
-                                    <span className="block text-gray-500 text-xs">{user.role}</span>
-                                    <span className="block text-gray-500 text-xs">{user.email}</span>
+                                <div className="flex items-center space-x-2">
+                                    <Avatar className="h-7 w-7">
+                                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-xs">
+                                            {user.avatar}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <span className="text-gray-300 text-sm">{user.name}</span>
+                                        <span className="block text-gray-500 text-xs">{user.role}</span>
+                                        <span className="block text-gray-500 text-xs">{user.email}</span>
+                                    </div>
                                 </div>
                                 <div className="flex space-x-1">
                                     <Button
@@ -295,23 +300,25 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
                             {sentRequests.map((user) => (
                                 <div
                                     key={user.requestedUserId}
-                                    className="flex items-center space-x-2 py-2 px-2 rounded"
+                                    className="flex items-center justify-between py-2 px-2 rounded"
                                 >
-                                    <Avatar className="h-7 w-7">
-                                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-xs">
-                                            {user.avatar}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <span className="text-gray-300 text-sm">{user.requestedUserName}</span>
-                                        <span className="block text-gray-500 text-xs">{user.jobRole}</span>
-                                        <span className="block text-gray-500 text-xs">{user.email}</span>
+                                    <div className="flex items-center space-x-2">
+                                        <Avatar className="h-7 w-7">
+                                            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-xs">
+                                                {user.avatar}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <span className="text-gray-300 text-sm">{user.requestedUserName}</span>
+                                            <span className="block text-gray-500 text-xs">{user.jobRole}</span>
+                                            <span className="block text-gray-500 text-xs">{user.email}</span>
+                                        </div>
                                     </div>
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="border-white/20 text-gray-300 px-2 py-1 hover:bg-white/10"
-                                    // Add your view profile logic here
+                                        className="border-white/20 text-gray-300 px-2 py-1 hover:bg-white/10 text-sm"
+                                        onClick={() => router.push(`/job-seeker/profile/${user.requestedUserId}`)}
                                     >
                                         View Profile
                                     </Button>
