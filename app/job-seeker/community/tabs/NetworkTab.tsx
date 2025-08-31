@@ -53,20 +53,8 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
     };
 
 
-    type SuggestedUser = {
-        userId: string;
-        name: string;
-        email: string;
-        role: string;
-        avatar?: string;
-        mutual?: number;
-    };
-
-
     const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
     const [connections, setConnections] = useState<Connection[]>([]);
-    const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([]);
-    const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>([]);
     const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([]);
     const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>([]);
 
@@ -102,18 +90,6 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
             .catch(err => console.error(err));
     };
 
-    const fetchSuggestions = () => {
-        axios.get(`http://localhost:8080/api/network/${userId}/suggestions`)
-            .then(res => setSuggestedUsers(res.data))
-            .catch(err => console.error(err));
-    };
-
-    const fetchSentRequests = () => {
-        axios.get(`http://localhost:8080/api/network/${userId}/sentRequests`)
-            .then(res => setSentRequests(res.data))
-            .catch(err => console.error(err));
-    };
-
     const handleConnect = (connectionId: number) => {
         axios.post(`http://localhost:8080/api/network/accept/${connectionId}`)
             .then(() => fetchConnections());
@@ -122,22 +98,6 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
     const handleIgnore = (connectionId: number) => {
         axios.post(`http://localhost:8080/api/network/ignore/${connectionId}`)
             .then(() => fetchConnections());
-    };
-
-    const handleSendRequest = (userId: string) => {
-        axios.post(`http://localhost:8080/api/network/request/${userId}/${userId}`)
-            .then(() => fetchSuggestions());
-    };
-
-    const handleConnectSuggestion = (targetId: string) => {
-        axios.post(`http://localhost:8080/api/network/connect/${userId}/${targetId}`)
-            .then(() => {
-                setSuggestedUsers(prev =>
-                    prev.filter(user => user.userId !== targetId)
-                );
-                fetchSentRequests();
-            })
-            .catch(err => console.error(err));
     };
 
     const handleSendRequest = (userId: string) => {
@@ -470,7 +430,8 @@ const NetworkTab: React.FC<NetworkTabProps> = ({ setActiveTab, setActiveChat }) 
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default NetworkTab;
+export default NetworkTab;

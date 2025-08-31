@@ -88,7 +88,6 @@ const FeedTab: React.FC = () => {
                 content: postContent,
                 contentType: "DOCUMENT",
                 createdBy: { id: userId },
-                createdBy: { id: userId },
             });
             setPostContent("");
             fetchActivityFeed();
