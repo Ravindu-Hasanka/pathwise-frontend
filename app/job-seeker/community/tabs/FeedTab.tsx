@@ -88,6 +88,7 @@ const FeedTab: React.FC = () => {
                 content: postContent,
                 contentType: "DOCUMENT",
                 createdBy: { id: userId },
+                createdBy: { id: userId },
             });
             setPostContent("");
             fetchActivityFeed();
@@ -315,6 +316,7 @@ const FeedTab: React.FC = () => {
                                                         onClick={() => addComment(post.postId)}
                                                         className="bg-gradient-to-r from-blue-500 to-purple-600"
                                                     >
+                                                        <Send className="h-4 w-4" />
                                                         <Send className="h-4 w-4" />
                                                     </Button>
                                                 </div>
