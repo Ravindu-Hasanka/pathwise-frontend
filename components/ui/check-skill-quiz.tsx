@@ -20,7 +20,7 @@ const sampleQuizQuestions: QuizQuestion[] = [
   {
     question: "What is the output of 2 + 2 in JavaScript?",
     options: ["3", "4", "22", "undefined"],
-    correctAnswer: 1, // "4"
+    correctAnswer: 1, 
   },
   {
     question: "Which hook is used to manage state in React?",
