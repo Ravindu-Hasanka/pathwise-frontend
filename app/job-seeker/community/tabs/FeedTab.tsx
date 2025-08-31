@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThumbsUp, MessageCircle, Share2, Send } from "lucide-react";
+import { getUserIdFromToken } from "@/app/lib/authCookies";
+
 
 type FeedPost = {
     postId: number;
@@ -24,8 +26,7 @@ type FeedPost = {
     };
 
 };
-
-const userId = 1;
+const userId = Number(getUserIdFromToken());
 
 const FeedTab: React.FC = () => {
     const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
@@ -314,6 +315,7 @@ const FeedTab: React.FC = () => {
                                                         onClick={() => addComment(post.postId)}
                                                         className="bg-gradient-to-r from-blue-500 to-purple-600"
                                                     >
+                                                        <Send className="h-4 w-4" />
                                                         <Send className="h-4 w-4" />
                                                     </Button>
                                                 </div>

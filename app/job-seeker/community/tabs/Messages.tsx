@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Mail } from "lucide-react";
 import { Content } from "vaul";
+import { getUserIdFromToken } from "@/app/lib/authCookies";
 
-const userId = 1;
+const userId = Number(getUserIdFromToken());
 
 type Message = { senderId: number, senderName: string; content: string; time: string };
 type Connection = {
