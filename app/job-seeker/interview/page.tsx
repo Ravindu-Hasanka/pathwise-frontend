@@ -1,7 +1,6 @@
 'use client';
 
 import VapiWidget from "@/components/ui/agent";
-import Agent from "@/components/ui/agent";
 import React from "react";
 
 const InterviewPage = () => {

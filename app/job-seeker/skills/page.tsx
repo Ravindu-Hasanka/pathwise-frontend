@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -25,21 +25,52 @@ import {
   Target,
 } from "lucide-react";
 import Navbar from "../../../components/ui/navbar";
+import { getRecommendedCourses, getSkillsByUser } from "@/api/api";
+import { ProgressData, RecommendedResource, SkillData } from "./types/getRecommendedCourses";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getUserIdFromToken } from "@/app/lib/authCookies";
 
 export default function SkillGapAnalysis() {
   const [activeTab, setActiveTab] = useState("analysis");
+  const [skillData, setSkillData] = useState<SkillData[]>([]);
+  const [recommendedResources, setRecommendedResources] = useState<RecommendedResource[]>([]);
+  const [isOpenRecommendedResourceModal, setIsOpenRecommendedResourceModal] = useState(false);
 
   // Sample data - in a real app this would come from user profile and backend
-  const skillData = [
-    { skill: "JavaScript", current: 75, target: 90 },
-    { skill: "React", current: 65, target: 85 },
-    { skill: "Node.js", current: 60, target: 80 },
-    { skill: "TypeScript", current: 50, target: 75 },
-    { skill: "UI/UX Design", current: 40, target: 70 },
-    { skill: "AWS", current: 30, target: 65 },
+  const skillDataSample: SkillData[] = [
+    {
+      skillId: 1, name: "JavaScript", level: 75, target: 90,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 2, name: "React", level: 65, target: 85,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 3, name: "Node.js", level: 60, target: 80,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 4, name: "TypeScript", level: 50, target: 75,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 5, name: "UI/UX Design", level: 40, target: 70,
+      updatedAt: "",
+      createdAt: ""
+    },
+    {
+      skillId: 6, name: "AWS", level: 30, target: 65,
+      updatedAt: "",
+      createdAt: ""
+    },
   ];
 
-  const recommendedResources = [
+  const recommendedResourcesSample: RecommendedResource[] = [
     {
       title: "Advanced React Patterns",
       type: "Course",
@@ -74,27 +105,47 @@ export default function SkillGapAnalysis() {
     },
   ];
 
-  const progressData = [
-    { skill: "JavaScript", progress: 75, target: 90 },
-    { skill: "React", progress: 65, target: 85 },
-    { skill: "Node.js", progress: 60, target: 80 },
-  ];
+  const fetchSkillData = async () => {
+    const userId = getUserIdFromToken();
+    console.log("User ID from token:", userId);
+    if (!userId) return;
+    const skillsResponse = await getSkillsByUser(userId);
+      const skillsData = skillsResponse.data;
+      console.log("Skills data:", skillsData);
+      setSkillData(skillsData);
+  }
+
+  const fetchRecommendedResources = async () => {
+    const userId = getUserIdFromToken();
+    console.log("User ID from token:", userId);
+    if (!userId) return;
+    const recommendedCoursesResponse = await getRecommendedCourses(userId);
+      const data: RecommendedResource[] = recommendedCoursesResponse.data;
+      console.log("Recommended resources data:", data);
+      setRecommendedResources(data);
+  }
+
+
+  useEffect(() => {
+    fetchSkillData();
+    fetchRecommendedResources();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Navbar currentPage="skills" />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Skill Gap Analysis</h1>
           <p className="text-gray-300 text-lg">
             Identify and bridge the gaps in your skill set to reach your career goals
           </p>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Skill Chart */}
-          <div className="lg:col-span-2">
+          {/* <div className="lg:col-span-2">
             <Card className="bg-slate-800/50 border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
@@ -151,7 +202,7 @@ export default function SkillGapAnalysis() {
                 </Button>
               </CardFooter>
             </Card>
-          </div>
+          </div> */}
 
           {/* Right Column - Summary */}
           <div className="space-y-6">
@@ -165,38 +216,36 @@ export default function SkillGapAnalysis() {
               <CardContent>
                 <div className="space-y-4">
                   {skillData
-                    .sort((a, b) => (b.target - b.current) - (a.target - a.current))
+                    .sort((a, b) => ((b.target || 100) - b.level) - ((a.target || 100) - a.level))
                     .slice(0, 3)
                     .map((skill, index) => (
-                      <div key={skill.skill} className="space-y-2">
+                      <div key={skill.skillId} className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-white font-medium">{skill.skill}</span>
+                          <span className="text-white font-medium">{skill.name}</span>
                           <Badge
                             variant="outline"
-                            className={`${
-                              index === 0
-                                ? "border-red-500/30 text-red-400"
-                                : index === 1
+                            className={`${index === 0
+                              ? "border-red-500/30 text-red-400"
+                              : index === 1
                                 ? "border-orange-500/30 text-orange-400"
                                 : "border-yellow-500/30 text-yellow-400"
-                            }`}
+                              }`}
                           >
-                            Gap: {skill.target - skill.current}%
+                            Gap: {(skill.target || 100) - skill.level}%
                           </Badge>
                         </div>
                         <Progress
-                          value={(skill.current / skill.target) * 100}
-                          className={`h-2 ${
-                            index === 0
-                              ? "bg-red-500"
-                              : index === 1
+                          value={(skill.level / skill.target) * 100}
+                          className={`h-2 ${index === 0
+                            ? "bg-red-500"
+                            : index === 1
                               ? "bg-orange-500"
                               : "bg-yellow-500"
-                          }`}
+                            }`}
                         />
                         <div className="flex justify-between text-xs text-gray-400">
-                          <span>Current: {skill.current}%</span>
-                          <span>Target: {skill.target}%</span>
+                          <span>Current: {skill.level}%</span>
+                          <span>Target: {skill.target || 100}%</span>
                         </div>
                       </div>
                     ))}
@@ -237,8 +286,8 @@ export default function SkillGapAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendedResources.map((resource, index) => (
-                  <Card key={index} className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors">
+                {recommendedResources.slice(0, 6).map((resource, index) => (
+                  <Card key={index} className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors pt-10">
                     <CardContent className="p-4">
                       <div className="flex justify-between">
                         <div>
@@ -253,9 +302,18 @@ export default function SkillGapAnalysis() {
                               {resource.duration}
                             </span>
                           </div>
-                          <Badge variant="outline" className="mt-2 border-blue-500/30 text-blue-400">
-                            {resource.skill}
-                          </Badge>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {resource.skill.split(",").map((skill, idx) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="border-blue-500/30 text-blue-400"
+                              >
+                                {skill.trim()}
+                              </Badge>
+                            ))}
+                          </div>
+
                         </div>
                         <Button
                           variant="ghost"
@@ -274,7 +332,7 @@ export default function SkillGapAnalysis() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-center border-t border-white/10 pt-4">
-              <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10">
+              <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10" onClick={() => setIsOpenRecommendedResourceModal(true)} >
                 View All Resources
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
@@ -282,6 +340,7 @@ export default function SkillGapAnalysis() {
           </Card>
         </div>
 
+        {/* Progress Tracking Section */}
         {/* Progress Tracking Section */}
         <div className="mt-8">
           <Card className="bg-slate-800/50 border-white/10">
@@ -293,29 +352,116 @@ export default function SkillGapAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {progressData.map((skill) => (
-                  <div key={skill.skill} className="space-y-2">
+                {skillData.map((skill) => (
+                  <div key={skill.skillId} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-white font-medium">{skill.skill}</span>
-                      <span className="text-gray-400 text-sm">
-                        {skill.progress}% of {skill.target}%
-                      </span>
+                      <span className="text-white font-medium">{skill.name}</span>
+
+                      {skill.level !== null ? (
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-400 text-sm">
+                            {skill.level}% of {skill.target || 100}%
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-white/20 text-gray-300 hover:bg-white/10"
+                            onClick={() => {
+                              window.location.href = `/check-skill-level?skill=${skill.name}&skillId=${skill.skillId}`;
+                            }}
+                          >
+                            Update Skill Level
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                          onClick={() => {
+                            window.location.href = `/check-skill-level?skill=${skill.name}&skillId=${skill.skillId}`;
+
+                          }}
+                        >
+                          Check Skill Level
+                        </Button>
+                      )}
                     </div>
-                    <Progress value={(skill.progress / skill.target) * 100} className="h-2" />
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Started: Jan 2023</span>
-                      <span>Estimated completion: Aug 2023</span>
-                    </div>
+
+                    {skill.level !== null ? (
+                      <>
+                        <Progress value={(skill.level / (skill.target || 100)) * 100} className="h-2" />
+                        <div className="flex justify-between text-xs text-gray-400">
+                          <span>Started: {skill.createdAt}</span>
+                          {/* <span>Estimated completion: Aug 2023</span> */}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-400">No progress recorded yet</p>
+                    )}
                   </div>
                 ))}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center border-t border-white/10 pt-4">
-              <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10">
-                Update Progress
-              </Button>
-            </CardFooter>
           </Card>
+        </div>
+
+
+        <div>
+          <Dialog open={isOpenRecommendedResourceModal} onOpenChange={setIsOpenRecommendedResourceModal}>
+            <DialogContent className="w-full max-h-[80vh] overflow-y-auto rounded-2xl shadow-xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">
+                  Recommended Resources
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                {recommendedResources.map((resource, index) => (
+                  <Card key={index} className="bg-slate-700/30 border-white/10 hover:border-white/30 transition-colors pt-10">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <h4 className="text-white font-medium">{resource.title}</h4>
+                          <div className="flex items-center text-sm text-gray-400 mt-1 space-x-4">
+                            <span className="flex items-center">
+                              <Award className="h-4 w-4 mr-1" />
+                              {resource.type}
+                            </span>
+                            <span className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {resource.duration}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {resource.skill.split(",").map((skill, idx) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="border-blue-500/30 text-blue-400"
+                              >
+                                {skill.trim()}
+                              </Badge>
+                            ))}
+                          </div>
+
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-400 hover:bg-blue-400/10"
+                          asChild
+                        >
+                          <a href={resource.link} target="_blank" rel="noopener noreferrer">
+                            <LinkIcon className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
