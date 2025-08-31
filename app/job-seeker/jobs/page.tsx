@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -42,6 +42,7 @@ import Navbar from "../../../components/ui/navbar";
 import axios from "axios";
 import { get } from "http";
 import { getRecommendedJobs } from "@/api/api";
+import { getUserIdFromToken } from "@/app/lib/authCookies";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001/api";
 
@@ -78,7 +79,11 @@ export default function JobsPage() {
     const fetchJobs = async () => {
       setIsLoading(true);
       try {
-        const response = await getRecommendedJobs(1);
+        const userId = getUserIdFromToken();
+        if (userId === null) {
+          throw new Error("User ID is null. Cannot fetch recommended jobs.");
+        }
+        const response = await getRecommendedJobs(userId);
         console.log("Fetched jobs:", response.data);
         
         

@@ -1,6 +1,7 @@
 import { setAuthCookies } from "@/app/lib/authCookies";
 import axios from "axios";
 import api from "./baseApi";
+import { use } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
 
@@ -54,4 +55,8 @@ export const updateSkillLevel = (skillId:number, level: number) => {
 
 export const getSkillsByUser = (userId: number) => {
   return api.get(`/skills/user-skills/${userId}`);
+}
+
+export const getCareerPaths = (userId: number) => {
+  return api.get(`/career-path/get-carrer-path/${userId}`);
 }
